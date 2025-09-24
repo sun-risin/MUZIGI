@@ -9,6 +9,10 @@ function App() {
     <Hello />
     <Hello />
     <Welcome />
+    <Hello />
+    <Hello />
+    <Welcome />
+    
   </div>;
 }
 
