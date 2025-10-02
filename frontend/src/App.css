@@ -1,4 +1,4 @@
-#root {
+/* #root {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
@@ -39,4 +39,30 @@
 
 .read-the-docs {
   color: #888;
+} */
+
+.app-container {
+  display: flex;
+  flex-direction: row;
+  height: 100vh;
+  padding: 0;
+  background-color: #fdfdfe;
+}
+
+.main-content {
+  flex: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 100px; 
+}
+
+.sidebar {
+  flex: 1;
+  background-color: #ffffff;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px; 
 }
