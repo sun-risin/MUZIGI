@@ -4,6 +4,7 @@ from firebase_admin import credentials, initialize_app
 
 def create_app():
     app = Flask(__name__)
+    # TODO: React 서버의 요청 허용하는 CORS 코드 (나중에 배포 시 도메인 추가)
     
     # Firebase 초기화 (중복 실행 에러 방지)
     if not firebase_admin._apps:
