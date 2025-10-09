@@ -6,20 +6,23 @@ import Login from "./component/Login";
 import "./App.css";
 
 function App() {
-const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-// 로그인 버튼 클릭 시 로그인 상태로 전환
-const handleLogin = () => {
-setIsLoggedIn(true);
-};
+    const handleLogin = () => {
+        setIsLoggedIn(true);
+    };
 
-return ( <div className="app-container">
-{isLoggedIn ? (
-<> <div className="main-content"> <Chat /> <Emotion /> </div> <Sidebar />
-</>
-) : ( <Login onLogin={handleLogin} />
-)} </div>
-);
-}
+    let content;
+        if (isLoggedIn) {
+            content = ( 
+                <> <div className="main-content"> <Chat /> <Emotion /> </div> 
+                <Sidebar /></>);
+        } 
+        else {
+            content = <Login onLogin={handleLogin} />;
+        }
+
+    return <div className="app-container">{content}</div>;
+    }
 
 export default App;
