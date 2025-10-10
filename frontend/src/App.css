@@ -1,15 +1,15 @@
 body {
   margin: 0;
+  background-color: #fdfefd;
 }
 
 #root {
-  max-width: 1280px;
+  /* max-width: 1280px; */
   margin: 0 auto;
-  padding: 2rem;
   text-align: center;
 }
 
-.logo {
+/* .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
@@ -35,22 +35,39 @@ body {
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-}
-
+} */
+/* 
 .card {
   padding: 2em;
 }
 
 .read-the-docs {
   color: #888;
+} */
+
+/* 공통 */
+.app-container {
+  width: 100vw;
+  height: 100vh;
 }
 
-.app-container {
+/* 로그인 전 */
+.app-container.login {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background-color: #fdfdfe;
+  flex-direction: column;
+}
+
+.app-container.login .login {/*로그인창 위로 올림*/
+  transform: translateY(-8%); 
+}
+
+/* 로그인 후 */
+.app-container.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
 }
 
 .main-content {
@@ -58,7 +75,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 100px; 
+  padding: 100px;
 }
 
 .sidebar {
@@ -68,5 +85,5 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 20px; 
+  padding: 20px;
 }
