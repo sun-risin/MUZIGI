@@ -2,6 +2,8 @@ from flask import Flask
 import firebase_admin
 from firebase_admin import credentials, initialize_app
 
+from backend.app.routes import main_route
+
 def create_app():
     app = Flask(__name__)
     # TODO: React 서버의 요청 허용하는 CORS 코드 (나중에 배포 시 도메인 추가)
@@ -13,8 +15,8 @@ def create_app():
 
     # --- Blueprint 등록 ---    
     # auth_routes
-    from app.routes import main_routes, auth_routes
-    app.register_blueprint(main_routes.main_blp)
+    from app.routes import main_route, auth_routes
+    app.register_blueprint(main_route.main_blp)
     app.register_blueprint(auth_routes.auth_blp)
 
     return app
