@@ -3,7 +3,7 @@ from firebase_admin import firestore
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.schemas.user_schema import UserSchema
 
-auth_blp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_blp = Blueprint("auth", __name__, url_prefix="/api/auth")
 db = firestore.client()
 user_schema = UserSchema()
 
