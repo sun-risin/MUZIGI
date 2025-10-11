@@ -8,8 +8,8 @@
 /* 왼쪽 컨텐츠 영역: Flexbox 컨테이너로 변경 */
 .content-area {
   flex: 1;
-  display: flex;            /* Flexbox 시작 */
-  flex-direction: column;   /* 자식 요소들을 세로로 배치 */
+  display: flex;
+  flex-direction: column;   
   padding: 20px;
 }
 
@@ -21,8 +21,7 @@
 
 /* 감정 버튼 영역 wrapper */
 .emotion-wrapper {
-  /* flex: 0; (기본값) -> 공간을 차지하지 않음 */
-  padding-top: 20px; /* 채팅창과의 간격을 위해 위쪽에 패딩 추가 */
+  padding-top: 20px; 
 }
 
 /* 오른쪽 사이드바 영역 */

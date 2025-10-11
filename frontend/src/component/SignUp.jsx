@@ -15,7 +15,7 @@ function SignUp() {
       
       <input type="text" placeholder="아이디를 입력해주세요" />
       <input type="password" placeholder="비밀번호를 입력해주세요" />
-      <input type="password" placeholder="비밀번호를 다시 입력해주세요" />
+      <input type="name" placeholder="사용할 닉네임을 입력해주세요" />
 
       <button className="signup-button" onClick={handleSignUp}>가입하기</button>
     </div>

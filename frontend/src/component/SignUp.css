@@ -19,7 +19,8 @@
 
 /* 입력 필드 스타일 */
 .signup input[type="text"],
-.signup input[type="password"] { /* 이메일 필드 추가 */
+.signup input[type="password"],
+.signup input[type="name"] { 
   width: 100%;
   box-sizing: border-box;
   padding: 15px 20px;
