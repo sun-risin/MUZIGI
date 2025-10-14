@@ -4,11 +4,11 @@ import './Layout.css';
 
 const Layout = () => {
   return (
-    <div>
-      <header style={{ padding: '10px 20px'}}>
-        <img src={Logo} alt="로고" style={{ height: '40px' }} />
+    <div className='layout-container'>
+      <header className='app-header'>
+        <img src={Logo} alt="로고" className='logo-image' />
       </header>
-      <main>
+      <main className='main-content'>
         <Outlet />
       </main>
     </div>
