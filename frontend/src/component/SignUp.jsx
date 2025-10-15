@@ -5,8 +5,7 @@ function SignUp() {
   const navigate = useNavigate();
 
   const handleSignUp = () => {
-    alert("회원가입이 완료되었습니다!");
-    navigate('/'); // 회원가입 후 로그인 페이지로 이동
+    navigate('/chat'); // 회원가입 후 로그인 페이지로 이동
   };
 
   return (
