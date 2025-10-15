@@ -41,7 +41,7 @@ def signup():
     return jsonify({"message": "회원가입 성공"}), 201
 
 
-# TODO: JWT로 로그인 유지
+# JWT 인증 로그인
 @auth_blp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
@@ -56,15 +56,24 @@ def login():
     if not user_docs:
         return jsonify({"message": "존재하지 않는 아이디입니다."}), 400 
     
+    # 유저 정보 저장 -> 비밀번호, 닉네임
+    user_info = user_docs[0].to_dict()
+    doc_password = user_info["password"]
+    doc_nickname = user_info["nickname"]
+    
     # 비밀번호 일치 확인
-    doc_password = user_docs[0].to_dict()["password"]
     password_chk = check_password_hash(doc_password, password)
-    if password_chk:    # 로그인 성공
-        doc_nickname = user_docs[0].to_dict()["nickname"]
+    if password_chk:    
+        userToken = jwt.encode({ # 로그인 토큰
+            'userId':userId, 'nickname':doc_nickname},
+            'muzigi-secret', algorithm='HS256') 
+        
         return jsonify({
-            "nickname": doc_nickname,
+            "userToken": userToken,
             "message": " 로그인 성공!"
-            }), 200 
+            }), 200     # 로그인 성공
     
     else:               # 비밀번호 다름 ; 로그인 실패
         return jsonify({"message": "비밀번호가 틀렸습니다."}), 409
+    
+    # TODO - 로그인 유지 확인 데코레이터 함수 
