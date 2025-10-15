@@ -6,8 +6,13 @@ from firebase_admin import credentials, initialize_app
 def create_app():
     app = Flask(__name__)
     # 리액트 Vite 서버 요청 허용
+<<<<<<< HEAD
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173/"]}}) # 나중에 배포 시 도메인 추가
 
+=======
+    CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}}) # 나중에 배포 시 도메인 추가
+    
+>>>>>>> 5689d9da419c1dec5dc20b62d5ca540e6872ccce
     # Firebase 초기화 (중복 실행 에러 방지)
     if not firebase_admin._apps:
         cred = credentials.Certificate("../firebase/serviceAccountKey.json")
