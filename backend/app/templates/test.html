@@ -10,10 +10,17 @@
 
   <form id="signupForm">
     <h3>회원가입 테스트</h3>
-    <input type="text" id="userId" placeholder="아이디" required><br>
-    <input type="password" id="password" placeholder="비밀번호" required><br>
+    <input type="text" id="signup-userId" placeholder="아이디" required><br>
+    <input type="password" id="signup-password" placeholder="비밀번호" required><br>
     <input type="text" id="nickname" placeholder="닉네임" required><br>
     <button type="submit">가입하기</button>
+  </form>
+
+  <form id="loginForm">
+    <h3>로그인 테스트</h3>
+    <input type="text" id="login-userId" placeholder="아이디" required><br>
+    <input type="password" id="login-password" placeholder="비밀번호" required><br>
+    <button type="submit">로그인</button>
   </form>
 
   <p id="response"></p>
@@ -22,11 +29,26 @@
     document.getElementById("signupForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const user = {
-        userId: document.getElementById("userId").value,
-        password: document.getElementById("password").value,
+        userId: document.getElementById("signup-userId").value,
+        password: document.getElementById("signup-password").value,
         nickname: document.getElementById("nickname").value
       };
       const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user)
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = {
+        userId: document.getElementById("login-userId").value,
+        password: document.getElementById("login-password").value,
+      };
+      const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(user)
