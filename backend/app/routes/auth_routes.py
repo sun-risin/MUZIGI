@@ -3,7 +3,7 @@ from firebase_admin import firestore
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.schemas.user_schema import UserSchema
 
-auth_blp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_blp = Blueprint("auth", __name__, url_prefix="/api/auth")
 db = firestore.client()
 user_schema = UserSchema()
 
@@ -12,7 +12,7 @@ user_schema = UserSchema()
 def signup():
     data = request.get_json()
     errors = user_schema.validate(data) # schema로 유효성 검사
-    if errors:
+    if errors:                          # 비번이나 닉네임 문제이므로 error 따로 출력
         return jsonify({
         "error": errors,
         "message": "유효하지 않은 입력값입니다."
@@ -30,12 +30,11 @@ def signup():
     # 비밀번호 해싱 후 저장 예정
     hashed_pw = generate_password_hash(password)
 
-    # Firestore에 저장
+    # Firestore에 생성 및 저장
     db.collection("users").add({
         "userId": userId,
         "password": hashed_pw,
-        "nickname": nickname,
-        "created_at": firestore.SERVER_TIMESTAMP
+        "nickname": nickname
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
