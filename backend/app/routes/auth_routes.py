@@ -3,6 +3,8 @@ from firebase_admin import firestore
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.schemas.user_schema import UserSchema
 import jwt
+from functools import wraps
+from jwt import InvalidTokenError
 
 auth_blp = Blueprint("auth", __name__, url_prefix="/api/auth")
 db = firestore.client()
@@ -76,4 +78,12 @@ def login():
     else:               # 비밀번호 다름 ; 로그인 실패
         return jsonify({"message": "비밀번호가 틀렸습니다."}), 409
     
-    # TODO - 로그인 유지 확인 데코레이터 함수 
+# 로그인 유지 확인 데코레이터 함수 
+def login_required(f):
+    @wraps(f)
+    def decorated_func(*args, **kwagrs):
+        userToken = request.headers.get("Authorization")
+        if not userToken:
+            return jsonify({"message": "토큰이 없습니다."}), 401
+        
+        
