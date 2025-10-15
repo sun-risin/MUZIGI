@@ -1,17 +1,24 @@
-import Sidebar from "./component/essential/Sidebar";
-import Chat from "./component/essential/Chat";
-import Emotion from "./component/essential/Emotion";
-import "./App.css";
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import './App.css';
+
+import Layout from './component/Layout'; 
+import Login from './component/Login';   
+import SignUp from './component/SignUp';
+import MainPage from './component/MainPage';
 
 function App() {
   return (
-    <div className="app-container">
-      <div className="main-content">
-        <Chat />
-        <Emotion />
-      </div>
-      <Sidebar />
-    </div>
+    <BrowserRouter>
+      <Routes>
+         <Route element={<Layout />}>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/chat" element={<MainPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

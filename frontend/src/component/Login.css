@@ -1,0 +1,67 @@
+.login {
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  width: 100%;
+  max-width: 400px; 
+  margin: 20px auto;
+  padding: 0px;
+  background-color: #fdfefd;
+}
+
+.login-title {
+  font-size: 3.5em;
+  color: #5D80B6;
+  margin-bottom: 90px;
+  font-weight: bold;
+}
+
+/* 입력 필드 스타일 */
+.login input[type="text"],
+.login input[type="password"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  border: 1px solid #EDEDED;
+  border-radius: 20px;
+  font-size: 1.1em;
+  outline: none;
+}
+
+.login input[type="text"]:focus,
+.login input[type="password"]:focus {
+  box-shadow: 0 0 5px rgba(123, 156, 178, 0.3);
+}
+
+.login-button {
+  width: 100%;
+  padding: 15px;
+  background-color: #5D80B6;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: background-color 0.3s ease; /*부드럽게 */
+  margin-bottom: 15px;
+}
+
+.login-button:hover {
+  background-color: #ABBDD2; 
+}
+
+/* 회원가입 버튼*/
+.link-button {
+  background: none; 
+  border: none;
+  color: #ABBDD2;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  padding: 5px;
+}
+
+.link-button:hover {
+  color: #5D80B6;
+}
