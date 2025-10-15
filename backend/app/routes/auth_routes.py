@@ -64,12 +64,16 @@ def login():
     # 비밀번호 일치 확인
     password_chk = check_password_hash(doc_password, password)
     if password_chk:    
-        token = jwt.encode({'userId':userId}, 'secret', algorithm='HS256') # 로그인 유지 - 토큰
+        userToken = jwt.encode({ # 로그인 토큰
+            'userId':userId, 'nickname':doc_nickname},
+            'muzigi-secret', algorithm='HS256') 
+        
         return jsonify({
-            "token": token,
-            "nickname": doc_nickname,
+            "userToken": userToken,
             "message": " 로그인 성공!"
             }), 200     # 로그인 성공
     
     else:               # 비밀번호 다름 ; 로그인 실패
         return jsonify({"message": "비밀번호가 틀렸습니다."}), 409
+    
+    # TODO - 로그인 유지 확인 데코레이터 함수 
