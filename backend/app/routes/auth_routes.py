@@ -2,8 +2,9 @@ from flask import Blueprint, request, jsonify
 from firebase_admin import firestore
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.schemas.user_schema import UserSchema
+import jwt
 
-auth_blp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_blp = Blueprint("auth", __name__, url_prefix="/api/auth")
 db = firestore.client()
 user_schema = UserSchema()
 
@@ -12,7 +13,7 @@ user_schema = UserSchema()
 def signup():
     data = request.get_json()
     errors = user_schema.validate(data) # schema로 유효성 검사
-    if errors:
+    if errors:                          # 비번이나 닉네임 문제이므로 error 따로 출력
         return jsonify({
         "error": errors,
         "message": "유효하지 않은 입력값입니다."
@@ -30,15 +31,40 @@ def signup():
     # 비밀번호 해싱 후 저장 예정
     hashed_pw = generate_password_hash(password)
 
-    # Firestore에 저장
+    # Firestore에 생성 및 저장
     db.collection("users").add({
         "userId": userId,
         "password": hashed_pw,
-        "nickname": nickname,
-        "created_at": firestore.SERVER_TIMESTAMP
+        "nickname": nickname
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
 
 
-# TODO: 로그인 + 토큰 발급하여 서비스 로그인 유지
+# TODO: JWT로 로그인 유지
+@auth_blp.route("/login", methods=["POST"])
+def login():
+    data = request.get_json()
+    
+    userId = data["userId"]
+    password = data["password"]
+    
+    # 아이디로 회원 정보 가져오기
+    user_docs = list(db.collection("users").where("userId", "==", userId).stream())
+    
+    # 아이디가 존재하지 않음
+    if not user_docs:
+        return jsonify({"message": "존재하지 않는 아이디입니다."}), 400 
+    
+    # 비밀번호 일치 확인
+    doc_password = user_docs[0].to_dict()["password"]
+    password_chk = check_password_hash(doc_password, password)
+    if password_chk:    # 로그인 성공
+        doc_nickname = user_docs[0].to_dict()["nickname"]
+        return jsonify({
+            "nickname": doc_nickname,
+            "message": " 로그인 성공!"
+            }), 200 
+    
+    else:               # 비밀번호 다름 ; 로그인 실패
+        return jsonify({"message": "비밀번호가 틀렸습니다."}), 409
