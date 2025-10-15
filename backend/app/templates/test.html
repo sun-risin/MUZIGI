@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>뮤지기 테스트 페이지</title>
+</head>
+<body>
+  <h1>🎵 뮤지기 Flask 서버 테스트 🎵</h1>
+  <p>서버 연결이 성공적으로 동작 중입니다!</p>
+
+  <form id="signupForm">
+    <h3>회원가입 테스트</h3>
+    <input type="text" id="userId" placeholder="아이디" required><br>
+    <input type="password" id="password" placeholder="비밀번호" required><br>
+    <input type="text" id="nickname" placeholder="닉네임" required><br>
+    <button type="submit">가입하기</button>
+  </form>
+
+  <p id="response"></p>
+
+  <script>
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = {
+        userId: document.getElementById("userId").value,
+        password: document.getElementById("password").value,
+        nickname: document.getElementById("nickname").value
+      };
+      const res = await fetch("/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user)
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
+  </script>
+</body>
+</html>
