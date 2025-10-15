@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request, jsonify, current_app
 from firebase_admin import firestore
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.schemas.user_schema import UserSchema
@@ -66,7 +66,7 @@ def login():
     if password_chk:    
         userToken = jwt.encode({ # 로그인 토큰
             'userId':userId, 'nickname':doc_nickname},
-            'muzigi-secret', algorithm='HS256') 
+            current_app.config['MUZIGI_JWT_KEY'], algorithm='HS256') 
         
         return jsonify({
             "userToken": userToken,
