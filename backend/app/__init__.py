@@ -5,6 +5,10 @@ from firebase_admin import credentials, initialize_app
 
 def create_app():
     app = Flask(__name__)
+    
+    # JWT 인증 비밀키 설정
+    app.config['MUZIGI_JWT_KEY'] = 'muzigi-secret'
+    
     # 리액트 Vite 서버 요청 허용
     CORS(app, resources={r"/*": {"origins": ["http://localhost:5173"]}}) # 나중에 배포 시 도메인 추가
     
