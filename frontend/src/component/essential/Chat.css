@@ -1,21 +1,44 @@
-.chat {
-  flex: 3;
+.chat-container {
+  padding: 20px;
+}
+
+/* 로고와 말풍선을 가로로 배치하기 위한 flexbox */
+.chat-welcome {
   display: flex;
-  flex-direction: column;
-  gap: 30px;
+  align-items: center; 
+  margin-bottom: 30px; /* 다른 채팅과의 간격 */
 }
 
-.chat-bubble {
-  max-width: 80%;
-  padding: 20px 20px;
-  border-radius: 15px;
+/* 헤드폰 로고 이미지 스타일 */
+.headphone-logo {
+  width: 80px; 
+  height: 80px;
+  margin-right: 20px; /* 말풍선과의 간격 */
 }
 
-.chat-bubble.left {
-  align-self: flex-start;
-  background-color: #EDEDED;
+/* 말풍선 스타일 */
+.speech-bubble {
+  position: relative; /* 말풍선 꼬리를 만들기 위해 relative 속성 필요 */
+  background-color: #f0f0f0; /* 말풍선 배경색 */
+  padding: 15px 20px;
+  border-radius: 15px; /* 모서리 둥글게 */
+  max-width: 400px;
 }
-.chat-bubble.right {
-  align-self: flex-end;
-  background-color: #ACBCD3;
+
+/* 말풍선 안의 p 태그 스타일 */
+.speech-bubble p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* 말풍선 꼬리 만들기 (CSS 가상 요소 활용) */
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: -10px; /* 말풍선 왼쪽에 붙이기 */
+  top: 50%;
+  transform: translateY(-50%);
+  border: 10px solid transparent;
+  border-right-color: #f0f0f0; /* 말풍선 배경색과 동일하게 */
+  border-left: 0;
 }
