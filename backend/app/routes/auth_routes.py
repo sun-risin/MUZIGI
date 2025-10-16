@@ -68,7 +68,7 @@ def login():
     if password_chk:    
         userToken = jwt.encode({ # 로그인 토큰
             'userId':userId, 'nickname':doc_nickname},
-            current_app.config['MUZIGI_JWT_KEY'], algorithm='HS256') 
+            current_app.config['MUZIGI_JWT_KEY'], algorithm= 'HS256') 
         
         return jsonify({
             "userToken": userToken,
@@ -91,9 +91,9 @@ def login_required(func):
         # 나중에 유효기간 추가할 수도 있으니 포함해서 로직 구현
         try:
             # 토큰 디코딩 -> payload
-            payload = jwt.decode(userToken, current_app.config['MUZIGI_JWT_KEY'], algorithm='HS256')
+            payload = jwt.decode(userToken, current_app.config['MUZIGI_JWT_KEY'], algorithms=['HS256'])
             userId = payload["userId"]
-            user_docs = list(db.collection("users").where("userId", "==", userId))
+            user_docs = list(db.collection("users").where("userId", "==", userId).stream())
             
             if not user_docs: 
                 return jsonify({"message": "유효하지 않은 사용자입니다."}), 401
@@ -108,3 +108,11 @@ def login_required(func):
         return func(curr_user, *args, *kwargs)
     
     return decorated_func
+
+@auth_blp.route("/tokentest", methods=["GET"])
+@login_required
+def login_check(curr_user):
+    return jsonify({
+        "message": f"{curr_user['nickname']} 님, 인증 성공!",
+        "userId": curr_user['userId']
+    }), 200

@@ -23,9 +23,14 @@
     <button type="submit">로그인</button>
   </form>
 
+
+  <button id="checkToken">로그인 유지 확인</button>
+
   <p id="response"></p>
 
   <script>
+    let userToken = null; // 로그인 성공 시 저장할 토큰
+
     document.getElementById("signupForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const user = {
@@ -55,7 +60,34 @@
       });
       const data = await res.json();
       document.getElementById("response").innerText = JSON.stringify(data);
+      
+      // 로그인 성공 시 토큰 저장
+      if (data.userToken) {
+        userToken = data.userToken;
+        localStorage.setItem("userToken", userToken);
+        alert("토큰 저장 완료!");
+      }
     });
+
+    // 토큰 검증용 요청
+    document.getElementById("checkToken").addEventListener("click", async () => {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        alert("로그인 토큰이 없습니다!");
+        return;
+      }
+
+      const res = await fetch("/api/auth/tokentest", {
+        method: "GET",
+        headers: {
+          "Authorization": userToken, // 헤더에 토큰 포함
+        },
+      });
+
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
+
   </script>
 </body>
 </html>
