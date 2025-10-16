@@ -56,7 +56,7 @@ def login():
     
     # 아이디가 존재하지 않음
     if not user_docs:
-        return jsonify({"message": "존재하지 않는 아이디입니다."}), 400 
+        return jsonify({"message": "존재하지 않는 아이디입니다."}), 401
     
     # 유저 정보 저장 -> 비밀번호, 닉네임
     user_info = user_docs[0].to_dict()
