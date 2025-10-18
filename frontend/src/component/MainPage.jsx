@@ -4,7 +4,6 @@ import Emotion from './essential/Emotion';
 import Sidebar from './essential/Sidebar';
 import './MainPage.css';
 
-// 1. App.jsx로부터 { setIsLoggedIn }을 props로 받습니다.
 function MainPage({ setIsLoggedIn }) { 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
