@@ -59,7 +59,7 @@
         body: JSON.stringify(user)
       });
       const data = await res.json();
-      document.getElementById("response").innerText = JSON.stringify(data);
+      document.getElementById("response").innerText = JSON.stringify(data) + "\n닉네임: " + data["nickname"];
       
       // 로그인 성공 시 토큰 저장
       if (data.userToken) {
