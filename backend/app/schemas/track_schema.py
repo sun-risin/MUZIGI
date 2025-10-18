@@ -23,6 +23,10 @@ Track_df = pd.read_csv(Track_CSV_PATH)
 Track_df = Track_df.rename(columns={"Unnamed: 0": "trackDocPos"}) # 첫 번째 열이 넘버링이었음. id로 쓰기 위해서 이름 바꿈
 Track_df = Track_df[['trackDocPos', 'song_title', 'artist', 'danceability', 'energy', 'valence']] # 넘버링, 제목, 가수, 고유 음악 특성 3가지만 남김
 
+# 중복, NULL 값 처리
+Track_df = Track_df.drop_duplicates()
+Track_df = Track_df.dropna()
+
 COLLECTION_NAME = "Track" # Firestore 컬렉션 이름
 batch = db.batch()
 count = 0
