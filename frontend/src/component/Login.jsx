@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "./Login.css";
 
-function Login() {
+function Login({setIsLoggedIn}) {
   const navigate = useNavigate();
 
   const [userId, setUserId] = useState('');
@@ -17,10 +17,6 @@ function Login() {
 
     setIsLoading(true);
 
-    // ================================================================
-    // 토큰 확인하고 주석 풀기
-    // ================================================================
-    /*
     try {
       const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
         method: 'POST',
@@ -36,10 +32,10 @@ function Login() {
       const data = await response.json();
 
       if (response.ok) {
-        // 'data.token'임시로 이름 지정, 나중에 변경
-        if (data.token) {
-          localStorage.setItem('accessToken', data.token);
+        if (data.userToken) {
+          localStorage.setItem('accessToken', data.userToken); // 로컬 스토리지에 토큰 저장
           alert("로그인 성공!");
+          setIsLoggedIn(true);
           navigate('/chat');
         } else {
           alert("로그인에 성공했으나 토큰을 받지 못했습니다.");
@@ -53,18 +49,7 @@ function Login() {
     } finally {
       setIsLoading(false);
     }
-    */
-
-    // ================================================================
-    //아래로 임시코드
-    // ================================================================
-    console.log("임시 로그인 성공! '/chat' 페이지로 이동합니다.");
-    setTimeout(() => { 
-      navigate('/chat');
-      setIsLoading(false);
-    }, 500); // 0.5초
   };
-// 여기까지
 
   const handleShowSignUp = () => {
     navigate('/signup');
