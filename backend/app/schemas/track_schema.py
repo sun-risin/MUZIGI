@@ -1,3 +1,9 @@
+"""
+이 파일은 marshmallow schema 관련 파일이 아닌,
+firestore에 kaggle의 csv 파일 데이터를 업로드하는 것에 대한 로직 파일입니다.
+csv 파일에서 원하는 부분만 고르고 열 이름을 변경한 후, 컬렉션 이름과 문서 ID를 지정하여 저장하였습니다.
+"""
+
 import pandas as pd
 import numpy as np
 import firebase_admin
