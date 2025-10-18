@@ -76,6 +76,7 @@ def login():
         
         return jsonify({
             "userToken": userToken,
+            "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌
             "message": " 로그인 성공!"
             }), 200     # 로그인 성공
     
