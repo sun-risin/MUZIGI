@@ -62,6 +62,7 @@ def send_messages():
     emotionName = data["emotionName"]
     
     # 뮤지기 버블 내용 만드는 곳
+    # TODO - TESTING
     emotion_doc = select_emotion(emotionName)
     muzigi_empathy_ment = emotion_empathy(emotion_doc)
     recommend_track_traits = emotion_trackTraits(emotion_doc)
