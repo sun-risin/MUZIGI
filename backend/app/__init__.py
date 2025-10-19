@@ -18,8 +18,15 @@ def create_app():
         initialize_app(cred)
 
     # --- Blueprint 등록 ---    
-    # auth_routes
-    from app.routes import main_route, auth_routes
+    from app.routes import main_route, auth_routes, chat_routes
+       
+    # 테스트 페이지 렌더링
     app.register_blueprint(main_route.main_blp)
+    
+    # auth_routes
     app.register_blueprint(auth_routes.auth_blp)
+    
+    #chat_routes
+    app.register_blueprint(chat_routes.chat_blp)
+    
     return app

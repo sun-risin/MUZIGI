@@ -26,6 +26,12 @@
 
   <button id="checkToken">로그인 유지 확인</button>
 
+  <form id="emotionSelect">
+    <h3>감정 전달</h3>
+    <input type="text" id="emotionName" placeholder="감정 입력" required><br>
+    <button type="submit">뮤지기 전달</button>
+  </form>
+
   <p id="response"></p>
 
   <script>
@@ -88,6 +94,32 @@
       document.getElementById("response").innerText = JSON.stringify(data);
     });
 
+
+    // 감정 선택, 뮤지기 버블 생성
+    document.getElementById("emotionSelect").addEventListener("submit", async (e) => {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        alert("로그인 토큰이 없습니다!");
+        return;
+      }
+
+      e.preventDefault();
+      const makeBubble = {
+        emotionName: document.getElementById("emotionName").value
+      };
+      
+      const res = await fetch("/api/chat/messages", {
+        method: "POST",
+        headers: { 
+          "Authorization": userToken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(makeBubble)
+      });
+
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
   </script>
 </body>
 </html>
