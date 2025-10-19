@@ -37,7 +37,7 @@ def signup():
     from app.routes.chat_routes import create_chat
     new_user_doc = db.collection("users").document() # 문서 생성
     new_user_docId = new_user_doc.id
-    first_chatId = create_chat(new_user_docId)
+    first_chatId = create_chat(new_user_docId)      # 첫 채팅 생성
     new_user_doc.set({
         "userId" : userId,
         "password" : hashed_pw,
