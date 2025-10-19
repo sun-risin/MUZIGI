@@ -53,6 +53,12 @@ def signup():
 @auth_blp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+    errors = user_schema.validate(data) # schema로 유효성 검사
+    if errors:
+        return jsonify({
+        "error": errors,
+        "message": "유효하지 않은 입력값입니다."
+    }), 400
     
     userId = data["userId"]
     password = data["password"]
