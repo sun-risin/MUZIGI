@@ -108,7 +108,7 @@
         emotionName: document.getElementById("emotionName").value
       };
       
-      const res = await fetch("/api/chat/messages", {
+      const res = await fetch("/api/chat/message", {
         method: "POST",
         headers: { 
           "Authorization": userToken,

@@ -109,8 +109,9 @@ def user_save_message(userDocId, chatId, emotionName):
 # --- 음악 추천 ---
 
 
-
-@chat_blp.route("/messages", methods=["POST"])
+# --- API ---
+# 채팅 - 감정 선택 → 음악 추천
+@chat_blp.route("/message", methods=["POST"])
 @login_required
 def messages(curr_user):
     if not curr_user:
