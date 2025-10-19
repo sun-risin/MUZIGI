@@ -34,10 +34,13 @@ def signup():
     hashed_pw = generate_password_hash(password)
 
     # Firestore에 생성 및 저장
-    db.collection("users").add({
-        "userId": userId,
-        "password": hashed_pw,
-        "nickname": nickname
+    new_user_doc = db.collection("users").document() # 문서 생성
+    new_user_docId = new_user_doc.id
+    new_user_doc.set({
+        "userId" : userId,
+        "password" : hashed_pw,
+        "nickname" : nickname,
+        "userDocId" : new_user_docId # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
@@ -60,6 +63,7 @@ def login():
     
     # 유저 정보 저장 -> 비밀번호, 닉네임
     user_info = user_docs[0].to_dict()
+    user_docId = user_info["userDocId"]
     doc_password = user_info["password"]
     doc_nickname = user_info["nickname"]
     
@@ -67,11 +71,12 @@ def login():
     password_chk = check_password_hash(doc_password, password)
     if password_chk:    
         userToken = jwt.encode({ # 로그인 토큰
-            'userId':userId, 'nickname':doc_nickname},
+            'userDocId':user_docId, 'nickname':doc_nickname},
             current_app.config['MUZIGI_JWT_KEY'], algorithm= 'HS256') 
         
         return jsonify({
             "userToken": userToken,
+            "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌
             "message": " 로그인 성공!"
             }), 200     # 로그인 성공
     
@@ -92,20 +97,20 @@ def login_required(func):
         try:
             # 토큰 디코딩 -> payload
             payload = jwt.decode(userToken, current_app.config['MUZIGI_JWT_KEY'], algorithms=['HS256'])
-            userId = payload["userId"]
-            user_docs = list(db.collection("users").where("userId", "==", userId).stream())
+            userDocId = payload["userDocId"]
+            user_doc = db.collection("users").document(userDocId).get()
             
-            if not user_docs: 
+            if not user_doc.exists: 
                 return jsonify({"message": "유효하지 않은 사용자입니다."}), 401
             
-            curr_user = user_docs[0].to_dict()
+            curr_user = user_doc.to_dict()
             
         except ExpiredSignatureError: # 유효기간 다 된 경우, 나중에 exp로 추가 가능
             return jsonify({"message": "토큰 만료"}), 401
         except InvalidTokenError:     # 토큰 값이 이상할 경우
             return jsonify({"message": "유효하지 않은 사용자 토큰"}), 401
         
-        return func(curr_user, *args, *kwargs)
+        return func(curr_user, *args, **kwargs)
     
     return decorated_func
 
@@ -113,6 +118,5 @@ def login_required(func):
 @login_required
 def login_check(curr_user):
     return jsonify({
-        "message": f"{curr_user['nickname']} 님, 인증 성공!",
-        "userId": curr_user['userId']
+        "message": f"{curr_user['nickname']} 님, 인증 성공!"
     }), 200

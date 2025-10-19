@@ -4,7 +4,7 @@ import Emotion from './essential/Emotion';
 import Sidebar from './essential/Sidebar';
 import './MainPage.css';
 
-function MainPage() {
+function MainPage({ setIsLoggedIn }) { 
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   return (
@@ -18,7 +18,11 @@ function MainPage() {
         </div>
       </div>
 
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+      <Sidebar 
+        isOpen={isSidebarOpen} 
+        setIsOpen={setIsSidebarOpen} 
+        setIsLoggedIn={setIsLoggedIn}
+      />
     </div>
   );
 }
