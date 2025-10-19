@@ -80,6 +80,8 @@ def MUZIGI_save_message(chatId, empathy, recommand):
         "senderId": "MUZIGI",
         "created_at": firestore.SERVER_TIMESTAMP
     })
+    
+    return content
 
 def user_save_message(userDocId, chatId, content):  
     # Firestore에 생성 및 저장
@@ -131,13 +133,15 @@ def messages(curr_user):
         return jsonify({"message": "추천 음악 특성값 찾기 실패"}), 400
     
     try:
-        MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_track_traits) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
+        muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_track_traits) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
     except:
         return jsonify({"message": "뮤지기 메시지 저장 오류 발생"}), 400
     
     
     # --- 로직 모두 잘 돌아감 ---
     return jsonify({
-        "message": "버블 테스트 성공\n"
+        "message": "버블 테스트 성공\n",
+        "user" : user_content,
+        "MUZIGI" : muzigi_content
     }), 200
     
