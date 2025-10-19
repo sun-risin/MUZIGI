@@ -53,6 +53,7 @@ def signup():
 @auth_blp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+    data["nickname"] = "for_validate"    # 유효성 검사로 인해 닉네임 채워놓음
     errors = user_schema.validate(data) # schema로 유효성 검사
     if errors:
         return jsonify({
