@@ -83,7 +83,15 @@ def MUZIGI_save_message(chatId, empathy, recommand):
     
     return content
 
-def user_save_message(userDocId, chatId, content):  
+# 사용자 버블 저장
+def user_save_message(userDocId, chatId, emotionName):
+    ments = [
+        f"제 감정은 지금 \"{emotionName}\"이에요.\n 이 감정에 맞는 음악을 추천해 주세요!",
+        f"\"{emotionName}\"라는 감정에 맞는 음악이 필요해요.",
+        f"\"{emotionName}\"의 감정이 느껴질 때 듣기 좋은 음악이 있을까요?"
+    ]
+    content = random.choice(ments)
+      
     # Firestore에 생성 및 저장
     new_message = db.collection("Message").document()
     new_message_docId = new_message.id
@@ -95,6 +103,8 @@ def user_save_message(userDocId, chatId, content):
         "senderId": userDocId,
         "created_at": firestore.SERVER_TIMESTAMP
     })
+    
+    return content
 
 # --- 음악 추천 ---
 
@@ -108,13 +118,12 @@ def messages(curr_user):
     
     data = request.get_json()
     emotionName = data["emotionName"]
-    user_content = data["sentence"]
     chat_list = curr_user["chatIds"]
     user_docId = curr_user["userDocId"]
     
     # --- 사용자 버블 ---
     try:
-        user_save_message(user_docId, chat_list[0], user_content) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
+        user_content = user_save_message(user_docId, chat_list[0], emotionName) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
     except:
         return jsonify({"message": "사용자 버블 저장 중 오류 발생"}), 400
     

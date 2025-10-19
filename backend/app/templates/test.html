@@ -105,8 +105,7 @@
 
       e.preventDefault();
       const makeBubble = {
-        emotionName: document.getElementById("emotionName").value,
-        sentence: "지금 제 감정에 맞는 음악을 추천해 주세요!"
+        emotionName: document.getElementById("emotionName").value
       };
       
       const res = await fetch("/api/chat/messages", {
