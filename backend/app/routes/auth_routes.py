@@ -34,13 +34,16 @@ def signup():
     hashed_pw = generate_password_hash(password)
 
     # Firestore에 생성 및 저장
+    from app.routes.chat_routes import create_chat
     new_user_doc = db.collection("users").document() # 문서 생성
     new_user_docId = new_user_doc.id
+    first_chatId = create_chat(new_user_docId)
     new_user_doc.set({
         "userId" : userId,
         "password" : hashed_pw,
         "nickname" : nickname,
-        "userDocId" : new_user_docId # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
+        "userDocId" : new_user_docId, # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
+        "chatIds": [first_chatId]        # 리스트 형태로 저장됨
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
