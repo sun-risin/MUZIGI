@@ -1,21 +1,19 @@
 import React, { useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom"; // 1. useNavigate 임포트
+import { useNavigate } from "react-router-dom"; 
 import "./Sidebar.css";
 
-// 2. props로 setIsLoggedIn을 추가로 받습니다. (isOpen, setIsOpen, setIsLoggedIn)
 function Sidebar({ isOpen, setIsOpen, setIsLoggedIn }) {
   const sidebarRef = useRef(null);
-  const navigate = useNavigate(); // 3. useNavigate 사용
+  const navigate = useNavigate();
 
   const toggleSidebar = (e) => {
     e.stopPropagation();
     setIsOpen(!isOpen);
   };
 
-  // 4. 로그아웃 핸들러 함수 생성
   const handleLogout = () => {
     localStorage.removeItem("accessToken"); // 로컬 스토리지에서 토큰 삭제
-    setIsLoggedIn(false); // App.jsx의 로그인 상태를 false로 변경
+    setIsLoggedIn(false);
     alert("로그아웃 되었습니다.");
     navigate("/login"); // 로그인 페이지로 이동
   };
