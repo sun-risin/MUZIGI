@@ -46,7 +46,7 @@ function MainPage({ setIsLoggedIn }) {
 
   return (
     <div className="main-page-container">
-      <div className= 'content-area'>
+      <div className= {`content-area ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="chat-wrapper">
           <Chat messages={messages} />
         </div>
