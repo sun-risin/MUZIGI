@@ -80,6 +80,7 @@ def login():
     user_docId = user_info["userDocId"]
     doc_password = user_info["password"]
     doc_nickname = user_info["nickname"]
+    doc_firstChatId = user_info["chatIds"][0]
     
     # 비밀번호 일치 확인
     password_chk = check_password_hash(doc_password, password)
@@ -90,7 +91,8 @@ def login():
         
         return jsonify({
             "userToken": userToken,
-            "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌
+            "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌,
+            "firstChatId" : doc_firstChatId, # 채팅 첫 아이디 - 로그인 시 첫 채팅으로 자동 로드되게 넘겨줌
             "message": " 로그인 성공!"
             }), 200     # 로그인 성공
     

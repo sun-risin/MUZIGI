@@ -3,6 +3,49 @@
 <head>
   <meta charset="UTF-8">
   <title>뮤지기 테스트 페이지</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    margin: 0;
+    padding: 0;
+  }
+  #chat-box {
+    width: 500px;
+    margin: 30px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .message {
+    display: flex;
+    margin-bottom: 10px;
+  }
+  .user {
+    justify-content: flex-end;
+  }
+  .muzigi {
+    justify-content: flex-start;
+  }
+  .bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    line-height: 1.5;
+    white-space: pre-wrap; /* f-string 줄바꿈 유지 */
+  }
+  .user .bubble {
+    background: #0078ff;
+    color: white;
+    border-bottom-right-radius: 0;
+  }
+  .muzigi .bubble {
+    background: #e5e5e5;
+    color: black;
+    border-bottom-left-radius: 0;
+  }
+</style>
 </head>
 <body>
   <h1>🎵 뮤지기 Flask 서버 테스트 🎵</h1>
@@ -34,8 +77,15 @@
 
   <p id="response"></p>
 
+
+  <div id="chat-box">
+    <h3>뮤지기 채팅 테스트</h3>
+    <div id="messages"></div>
+  </div>
+
   <script>
     let userToken = null; // 로그인 성공 시 저장할 토큰
+    let chatId = ""; // 로그인 성공 시 저장할 첫 chatId
 
     document.getElementById("signupForm").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -73,6 +123,8 @@
         localStorage.setItem("userToken", userToken);
         alert("토큰 저장 완료!");
       }
+
+      loadMessages(data.firstChatId));
     });
 
     // 토큰 검증용 요청
@@ -120,6 +172,39 @@
       const data = await res.json();
       document.getElementById("response").innerText = JSON.stringify(data);
     });
+
+    async function loadMessages(chatId) {
+      const token = localStorage.getItem("userToken");
+
+      if (!chatId || !token) {
+        console.warn("토큰 또는 chatId가 없습니다.");
+        return;
+      }
+
+      const res = await fetch(`http://127.0.0.1:5000/api/chat/${chatId}/messages`, {
+        method: "GET",
+        headers: {
+          "Authorization": userToken, // 헤더에 토큰 포함
+        },
+      });
+      const data = await res.json();
+
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+
+      data.messages.forEach(msg => {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message");
+        msgDiv.classList.add(msg.senderType ? "user" : "muzigi");
+
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble");
+        bubble.textContent = msg.content;
+
+        msgDiv.appendChild(bubble);
+        container.appendChild(msgDiv);
+      });
+    }
   </script>
 </body>
 </html>
