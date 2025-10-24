@@ -1,21 +1,30 @@
 .main-page-container {
   display: flex;
-  height: 100%;
+  height: 100vh; 
   width: 100%;
+  overflow: hidden; 
+  position: relative; 
 }
 
 .content-area {
-  flex: 1;
+  flex-grow: 1; 
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
+  padding: 20px; 
+  transition: margin-right 0.3s ease-in-out; 
+  margin-right: 0; /* 기본 상태 (사이드바 닫힘) */
 }
 
 .chat-wrapper {
-  flex: 1;
-  overflow-y: auto; /* 내용이 길어지면 스크롤 생성 */
+  flex-grow: 1; 
+  overflow-y: auto; 
+  padding-bottom: 20px; 
 }
 
 .emotion-wrapper {
-  padding-top: 10px; /* 채팅창과의 간격 */
+  flex-shrink: 0; 
+  padding-top: 20px; 
+  border-top: 1px solid #eee; 
+  background-color: #fff; 
 }

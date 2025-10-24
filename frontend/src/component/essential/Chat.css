@@ -8,16 +8,14 @@
   margin-bottom: 30px; /* 다른 채팅과의 간격 */
 }
 
-/*뮤지기 로고*/
 .headphone-logo {
   width: 80px; 
   height: 80px;
-  margin-right: 20px;
+  margin-right: 20px; 
   border-radius: 50%;
   flex-shrink: 0;
 }
 
-/* 환영 메시지 말풍선 */
 .speech-bubble {
   position: relative; 
   background-color: #f0f0f0; 
@@ -31,23 +29,22 @@
   line-height: 1.5;
 }
 
-/* 환영 메시지 말풍선 꼬리 */
 .speech-bubble::before {
   content: '';
   position: absolute;
-  left: -10px; 
-  top: 50%;
+  left: -9px; 
+  top: 40px;
   transform: translateY(-50%);
   border: 10px solid transparent;
   border-right-color: #f0f0f0; 
   border-left: 0;
 }
 
-/* 챗버블들을 감싸는 전체 목록 */
+
 .chat-messages-list {
   display: flex;
   flex-direction: column;
-  gap: 15px; /* 챗버블 사이의 간격 */
+  gap: 15px; 
 }
 
 .chat-bubble {
@@ -56,11 +53,10 @@
   max-width: 80%;
 }
 
-/* 챗버블 안의 봇 프로필 (환영 로고와 크기 통일) */
 .bot-profile-in-chat {
-  width: 80px;  
+  width: 80px;   
   height: 80px;  
-  margin-right: 20px; 
+  margin-right: 20px;
   border-radius: 50%;
   flex-shrink: 0;
 }
@@ -69,47 +65,56 @@
 .message-content {
   border-radius: 15px;
   padding: 15px 20px; 
-  position: relative;
 }
 
-/* 뮤지기 챗 왼쪽 정렬*/
+/*엔터 인식*/
+.message-content p {
+  margin: 0;          
+  line-height: 1.5;    
+  white-space: pre-line;
+}
+
+
+/* 왼쪽 뮤지기 챗 */
 .chat-bubble.left {
   justify-content: flex-start;
 }
 .chat-bubble.left .message-content {
   background-color: #f0f0f0;
+  position: relative;
 }
-.chat-bubble.left .message-content::before {
+
+.chat-bubble.left .message-content::before { 
   content: '';
   position: absolute;
-  left: -10px; /* 말풍선 왼쪽에 붙이기 */
-  top: 30px;
+  left: -9px; /* 말풍선 왼쪽에 붙이기 */
+  top: 40px;
+  transform: translateY(-50%);
   border: 10px solid transparent;
-  border-right-color: #f0f0f0;
+  border-right-color: #f0f0f0; 
   border-left: 0;
 }
 
-/* 사용자 챗 오른쪽 정렬 */
+/* 오른쪽 사용자 챗 */
 .chat-bubble.right {
   justify-content: flex-end;
   margin-left: auto; 
 }
 .chat-bubble.right .message-content {
-  background-color: #ACBCD3;
+  background-color: #ACBCD3; 
   position: relative;
 }
 .chat-bubble.right .message-content::after {
   content: '';
   position: absolute;
-  right: -10px; 
+  right: -9px; 
   top: 50%;
   transform: translateY(-50%);
   border: 10px solid transparent;
-  border-left-color: #ACBCD3;;
+  border-left-color: #ACBCD3; 
   border-right: 0;
 }
 
-/* 음악 추천 목록 스타일 */
 .music-list {
   padding-left: 20px;
   margin-top: 10px;

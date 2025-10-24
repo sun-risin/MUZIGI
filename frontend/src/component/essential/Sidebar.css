@@ -1,53 +1,149 @@
-.sidebar-container {
-  position: relative;
-  height: 100%;
-  background-color: #fff;
-  border-left: 1px solid #ddd;
-  transition: width 0.3s ease; /* 너비 변경에 애니메이션 적용 */
-  flex-shrink: 0; /* 내용이 많아져도 찌그러지지 않도록 설정 */
+.sidebar {
+    position: fixed;
+    top: 0;
+    right: -300px; /* 사이드바 숨김 (너비보다 크게) */
+    width: 280px; /* 이미지 너비에 맞춤 */
+    height: 100%;
+    background-color: #fdfefd;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+    z-index: 1000;
 }
 
-/* 사이드바가 열렸을 때의 너비 */
-.sidebar-container.open {
-  width: 250px;
+.sidebar.open {
+    right: 0; /* 사이드바 열림 */
 }
 
-/* 사이드바가 닫혔을 때의 너비 */
-.sidebar-container.closed {
-  width: 0;
-  border-left: none; /* 닫혔을 때는 경계선도 숨김 */
+/* 사이드바 헤더 (닫기 버튼) */
+.sidebar-header {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
 }
 
-.sidebar-content {
-  width: 250px; /* 너비는 항상 고정 (내용이 찌그러지지 않게) */
-  height: 100%;
-  padding: 20px;
-  box-sizing: border-box;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: opacity 0.2s ease-out; 
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #555;
+    padding: 5px;
 }
 
-.sidebar-container.closed .sidebar-content {
-  opacity: 0;
-  pointer-events: none; 
+.close-btn:hover {
+    color: #000;
 }
 
-.toggle-btn {
-  position: absolute;
-  left: -15px; /* 버튼의 위치를 살짝 조정 */
-  top: 20px;
-  background-color: #fff;
-  border: 1px solid #ddd;
-  border-radius: 50%;
-  width: 30px; /* 버튼 크기를 살짝 키움 */
-  height: 30px;
-  cursor: pointer;
-  z-index: 10; /* 다른 요소들보다 위에 보이도록 설정 */
-  
-  /* 버튼 안의 아이콘 정렬 */
-  display: flex;
-  justify-content: center;
-  align-items: center;
+/* 주요 액션 (새 채팅, 사용자 프로필) */
+.main-actions {
+    background-color: #EDEDED; /* 배경색 추가 */
+    border-radius: 8px;
+    padding: 10px 15px;
+    margin-bottom: 20px;
+}
+
+.action-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    cursor: pointer;
+    color: #333;
+    font-size: 1rem;
+}
+
+.action-item:hover {
+    color: #000;
+}
+
+.action-icon {
+    margin-right: 10px;
+    font-size: 1.1rem;
+}
+
+/* 일반 섹션 (재생 목록, 채팅 목록) */
+.sidebar-section {
+    margin-bottom: 20px;
+}
+
+.sidebar-section h3 {
+    font-size: 1.2rem;
+    color: #555;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar-section h3 .fa-icon {
+    margin-right: 8px;
+}
+
+.scrollable-list {
+    max-height: 150px; /* 스크롤 높이 제한 */
+    overflow-y: auto; /* 내용이 넘치면 스크롤 */
+    background-color: #eDEDED; /* 목록 배경색 */
+    border-radius: 5px;
+    padding: 10px;
+}
+
+.scrollable-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.scrollable-list li {
+    padding: 8px 0;
+    color: #555;/*글씨 색*/
+    border-bottom: 1px solid #ddd;
+}
+
+.scrollable-list li:last-child {
+    border-bottom: none;
+}
+
+.scrollable-list::-webkit-scrollbar {
+    width: 8px;
+}
+
+.scrollable-list::-webkit-scrollbar-thumb {
+    background-color: #ccc;
+    border-radius: 4px;
+}
+
+.scrollable-list::-webkit-scrollbar-track {
+    background-color: #f0f0f0;
+}
+
+/* 로그아웃 버튼 */
+.sidebar-footer {
+    margin-top: auto; /* 하단에 고정 */
+    padding-top: 20px;
+    border-top: 1px solid #ddd; /* 구분선 */
+}
+
+.logout-btn {
+    width: 100%;
+    padding: 12px 15px;
+    background-color: #5D80B6; /* 버튼 배경색 */
+    color: #ffffff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.logout-btn:hover {
+    background-color: #ACBCD3;
+}
+
+.logout-icon {
+    margin-right: 8px;
+    font-size: 1.2rem;
 }

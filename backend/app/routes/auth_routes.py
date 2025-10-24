@@ -34,13 +34,20 @@ def signup():
     hashed_pw = generate_password_hash(password)
 
     # Firestore에 생성 및 저장
+    from app.routes.chat_routes import create_chat
     new_user_doc = db.collection("users").document() # 문서 생성
     new_user_docId = new_user_doc.id
+    try:
+        first_chatId = create_chat(new_user_docId)      # 첫 채팅 생성
+    except:
+        return jsonify({"message": "첫 채팅 생성 실패"}), 500
+    
     new_user_doc.set({
         "userId" : userId,
         "password" : hashed_pw,
         "nickname" : nickname,
-        "userDocId" : new_user_docId # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
+        "userDocId" : new_user_docId, # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
+        "chatIds": [first_chatId]        # 리스트 형태로 저장됨
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
@@ -50,6 +57,13 @@ def signup():
 @auth_blp.route("/login", methods=["POST"])
 def login():
     data = request.get_json()
+    data["nickname"] = "for_validate"    # 유효성 검사로 인해 닉네임 채워놓음
+    errors = user_schema.validate(data) # schema로 유효성 검사
+    if errors:
+        return jsonify({
+        "error": errors,
+        "message": "유효하지 않은 입력값입니다."
+    }), 400
     
     userId = data["userId"]
     password = data["password"]
@@ -66,6 +80,7 @@ def login():
     user_docId = user_info["userDocId"]
     doc_password = user_info["password"]
     doc_nickname = user_info["nickname"]
+    doc_firstChatId = user_info["chatIds"][0]
     
     # 비밀번호 일치 확인
     password_chk = check_password_hash(doc_password, password)
@@ -76,7 +91,8 @@ def login():
         
         return jsonify({
             "userToken": userToken,
-            "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌
+            "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌,
+            "firstChatId" : doc_firstChatId, # 채팅 첫 아이디 - 로그인 시 첫 채팅으로 자동 로드되게 넘겨줌
             "message": " 로그인 성공!"
             }), 200     # 로그인 성공
     
