@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. useState, useEffect 임포트
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
@@ -8,13 +8,14 @@ import SignUp from './component/SignUp';
 import MainPage from './component/MainPage';
 
 function App() {
+
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (token) {
-      setIsLoggedIn(true); // 토큰 있으면 로그인 인정
+      setIsLoggedIn(true); 
     }
     setIsLoading(false); 
   }, []); 
@@ -26,29 +27,12 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-         <Route element={<Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}>
-           
-           <Route 
-             path="/" 
-             element={
-               isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />
-             } 
-           />
-           
-           <Route 
-             path="/login" 
-             element={<Login setIsLoggedIn={setIsLoggedIn} />} 
-           />
-           
-           <Route path="/signup" element={<SignUp />} />
-           
-           <Route 
-              path="/chat" 
-              element={
-                isLoggedIn ? <MainPage setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />
-              }  
-            />
-         </Route>
+        <Route element={<Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}>
+        <Route path="/" element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} />
+        <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/chat" element={isLoggedIn ? <MainPage setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />}/>
+        </Route>
       </Routes>
     </BrowserRouter>
   );
