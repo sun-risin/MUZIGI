@@ -32,8 +32,8 @@
 .speech-bubble::before {
   content: '';
   position: absolute;
-  left: -10px; 
-  top: 20px;
+  left: -9px; 
+  top: 40px;
   transform: translateY(-50%);
   border: 10px solid transparent;
   border-right-color: #f0f0f0; 
@@ -67,19 +67,28 @@
   padding: 15px 20px; 
 }
 
+/*엔터 인식*/
+.message-content p {
+  margin: 0;          
+  line-height: 1.5;    
+  white-space: pre-line;
+}
+
+
 /* 왼쪽 뮤지기 챗 */
 .chat-bubble.left {
   justify-content: flex-start;
 }
 .chat-bubble.left .message-content {
   background-color: #f0f0f0;
+  position: relative;
 }
 
 .chat-bubble.left .message-content::before { 
   content: '';
   position: absolute;
-  left: -10px; /* 말풍선 왼쪽에 붙이기 */
-  top: 20px;
+  left: -9px; /* 말풍선 왼쪽에 붙이기 */
+  top: 40px;
   transform: translateY(-50%);
   border: 10px solid transparent;
   border-right-color: #f0f0f0; 
@@ -98,7 +107,7 @@
 .chat-bubble.right .message-content::after {
   content: '';
   position: absolute;
-  right: -10px; 
+  right: -9px; 
   top: 50%;
   transform: translateY(-50%);
   border: 10px solid transparent;

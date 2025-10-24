@@ -52,7 +52,7 @@
     padding: 10px 0;
     cursor: pointer;
     color: #333;
-    font-size: 1.1rem;
+    font-size: 1rem;
 }
 
 .action-item:hover {
@@ -61,7 +61,7 @@
 
 .action-icon {
     margin-right: 10px;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
 }
 
 /* 일반 섹션 (재생 목록, 채팅 목록) */
@@ -71,7 +71,7 @@
 
 .sidebar-section h3 {
     font-size: 1.2rem;
-    color: #333;
+    color: #555;
     margin-bottom: 10px;
     display: flex;
     align-items: center;
