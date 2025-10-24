@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from firebase_admin import firestore
+from google.cloud.firestore_v1.base_query import FieldFilter
 from app.routes.auth_routes import login_required
 import random
 
@@ -8,6 +9,7 @@ db = firestore.client()
 
 
 # --- 채팅 모듈 ---
+# 새 채팅 생성 - 생성 채팅 아이디 반환
 def create_chat(userDocId):
     # Firestore에 생성 및 저장
     new_chat_doc = db.collection("Chat").document() # 문서 생성
@@ -31,7 +33,7 @@ emotion = {
 
 # 모듈 호출 순서: (선) 감정 선택 -> (후) 감정 기반 음악 특성, 공감 멘트, UI 반환
 # 감정 선택
-def select_emotion(emotionName):
+def emotion_select(emotionName):
     try:
         docId = emotion[emotionName]
     except KeyError: # 매핑되는 감정값이 없을 때
@@ -49,7 +51,19 @@ def emotion_trackTraits(emotion_docData):
     if not track_traits:
         return None
     
-    return track_traits
+    try:
+        emo_traits = {
+            "danceabilityMin" : f"{track_traits['danceabilityMin']}",
+            "danceabilityMax" : f"{track_traits['danceabilityMax']}",
+            "energyMin" : f"{track_traits['energyMin']}",
+            "energyMax" : f"{track_traits['energyMax']}",
+            "valenceMin" : f"{track_traits['valenceMin']}",
+            "valenceMax" : f"{track_traits['valenceMax']}"
+        }
+    except:
+        return None
+    
+    return emo_traits
 
 # 감정에 따른 공감 멘트 제공
 def emotion_empathy(emotion_docData):
@@ -66,8 +80,13 @@ def emotion_empathy(emotion_docData):
     
 # --- 메시지 저장 모듈 ---
 # 뮤지기 버블 저장
-def MUZIGI_save_message(chatId, empathy, recommand):
-    content = f"{empathy}\n\n추천 음악 특성:{recommand}"
+def MUZIGI_save_message(chatId, empathy, recommend):
+    ment_recommend = ""
+    for i in range(len(recommend)):
+        reco = recommend[i]
+        ment_recommend += f"\t({i+1}) 제목: {reco['title']}, 가수:{reco['artist']}\n"
+    
+    content = f"{empathy}\n\n추천 음악:\n{ment_recommend}"
 
     # Firestore에 생성 및 저장
     new_message = db.collection("Message").document()
@@ -107,6 +126,54 @@ def user_save_message(userDocId, chatId, emotionName):
     return content
 
 # --- 음악 추천 ---
+def tracks_recommend(d, traits):
+    traits = emotion_trackTraits(d)
+    if traits is None:        return "특성 자체 못넘김"
+    
+    try:
+        danceability = [traits["danceabilityMin"], traits["danceabilityMax"]]
+        energy = [traits["energyMin"], traits["energyMax"]]
+        valence = [traits["valenceMin"], traits["valenceMax"]]
+    except:
+        return "tratis에서 매핑을 못했어"
+    
+    # Firestore에서 danceability 기준으로 1차 필터링 - 복합 인덱스 생성 시 요금 발생 가능...
+    try:
+        track_docs = list(
+            db.collection("Track")
+            .where(filter=FieldFilter("danceability", ">=", float(danceability[0])))
+            .where(filter=FieldFilter("danceability", "<=", float(danceability[1])))
+            .stream()
+        )
+    except:        return "db에서 못찾음"
+    
+
+    # Python에서 추가 조건(energy, valence) 필터링
+    filtered_tracks = []
+    try:
+        for doc in track_docs:
+            data = doc.to_dict()
+            if (
+                float(energy[0]) <= data["energy"] <= float(energy[1])
+                and float(valence[0]) <= data["valence"] <= float(valence[1])
+            ):
+                filtered_tracks.append(data)
+    except:
+        return "추가 조건 필터링 중 문제 발생"
+            
+    try:
+        recommend_track_list = random.sample(filtered_tracks, 3)
+    except:
+        return f"랜덤 샘플링 실패 - 결과값:{len(filtered_tracks)}"
+    
+    recommend_list = []
+    for reco in recommend_track_list:
+        song_info = {
+            "title" : f'{reco["song_title"]}',
+            "artist": f'{reco["artist"]}'}
+        recommend_list.append(song_info)
+    
+    return recommend_list
 
 
 # --- API ---
@@ -126,26 +193,32 @@ def messages(curr_user):
     try:
         user_content = user_save_message(user_docId, chat_list[0], emotionName) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
     except:
-        return jsonify({"message": "사용자 버블 저장 중 오류 발생"}), 400
+        return jsonify({"message": "사용자 버블 저장 중 오류 발생"}), 500
     
     
     # --- 뮤지기 버블 ---
-    emotion_doc = select_emotion(emotionName)
+    emotion_doc = emotion_select(emotionName)
     if emotion_doc is None:
-        return jsonify({"message" : "감정 문서 찾기 실패"}), 400
+        return jsonify({"message" : "감정 문서 찾기 실패"}), 500
     
     muzigi_empathy_ment = emotion_empathy(emotion_doc)
     if muzigi_empathy_ment is None:
-        return jsonify({"message": "공감 멘트 찾기 실패"}), 400
+        return jsonify({"message": "공감 멘트 찾기 실패"}), 500
     
     recommend_track_traits = emotion_trackTraits(emotion_doc)
     if recommend_track_traits is None:
-        return jsonify({"message": "추천 음악 특성값 찾기 실패"}), 400
+        return jsonify({"message": "추천 음악 특성값 찾기 실패"}), 500
+    
+    recommend_tracks = tracks_recommend(emotion_doc, recommend_track_traits)
+    if recommend_tracks is None :
+        return jsonify({"message": "추천 음악 리스트 생성 실패"}), 500
+    if type(recommend_tracks) is not list:
+        return jsonify({"message": f'{recommend_tracks}'}), 500
     
     try:
-        muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_track_traits) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
+        muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
     except:
-        return jsonify({"message": "뮤지기 메시지 저장 오류 발생"}), 400
+        return jsonify({"message": "뮤지기 메시지 저장 오류 발생"}), 500
     
     
     # --- 로직 모두 잘 돌아감 ---
@@ -155,3 +228,31 @@ def messages(curr_user):
         "MUZIGI" : muzigi_content
     }), 200
     
+
+# 채팅 기록 띄우기
+@chat_blp.route("/<chatId>/messages", methods=["GET"])
+@login_required
+def chat_show_messages(curr_user, chatId):
+    if not curr_user:
+        return jsonify({"message": "사용자 토큰 없음"}), 401
+    
+    try:
+        messages_ref = db.collection("Message").where("chatId", "==", chatId).order_by("created_at")
+        messages = messages_ref.stream()
+
+        message_list = []
+        for msg in messages:
+            data = msg.to_dict()
+            message_list.append({
+                "messageId": data.get("messageId"),
+                "senderType": data.get("senderType"),
+                "senderId": data.get("senderId"),
+                "content": data.get("content"),
+                "created_at": data.get("created_at")
+            })
+        
+        return jsonify({"chatId": chatId, "messages": message_list}), 200
+
+    except Exception as e:
+        print("메시지 가져오다 오류 남:", e)
+        return jsonify({"message": "메시지 가져오기 오류"}), 500
