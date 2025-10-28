@@ -5,29 +5,27 @@ csv 파일에서 원하는 부분만 고르고 열 이름을 변경한 후, 컬�
 """
 
 import pandas as pd
-import numpy as np
 import firebase_admin
 from firebase_admin import firestore, credentials, initialize_app
 
 # Firebase 초기화 (중복 실행 에러 방지)
 if not firebase_admin._apps:
-    cred = credentials.Certificate("../../../firebase/serviceAccountKey.json")
+    cred = credentials.Certificate("../firebase/serviceAccountKey.json")
     initialize_app(cred)
 
 db = firestore.client()
 
 # Kaggle에서 다운로드 받은 csv 불러옴
-Track_CSV_PATH = "C:/Users/user/Spotify_track.csv"
+Track_CSV_PATH = "C:/Users/user/spotify_songs.csv"
 Track_df = pd.read_csv(Track_CSV_PATH)
 
-Track_df = Track_df.rename(columns={"Unnamed: 0": "trackDocPos"}) # 첫 번째 열이 넘버링이었음. id로 쓰기 위해서 이름 바꿈
-Track_df = Track_df[['trackDocPos', 'song_title', 'artist', 'danceability', 'energy', 'valence']] # 넘버링, 제목, 가수, 고유 음악 특성 3가지만 남김
+Track_df = Track_df[['track_id', 'track_name', 'track_artist', 'danceability', 'energy', 'valence']]
 
 # 중복, NULL 값 처리
 Track_df = Track_df.drop_duplicates()
 Track_df = Track_df.dropna()
 
-COLLECTION_NAME = "Track" # Firestore 컬렉션 이름
+COLLECTION_NAME = "Tracks" # Firestore 컬렉션 이름
 batch = db.batch()
 count = 0
 
@@ -39,11 +37,11 @@ for index, row in Track_df.iterrows():
     doc_data = row.to_dict() # csv 행 데이터 => Firestore 문서의 데이터 (딕셔너리 형태로 넣어야 됨)
 
     # 문서 ID 지정
-    doc_id = str(row['trackDocPos']) # 문서 위치(넘버링)로 문서 ID 사용
+    doc_id = str(row['track_id']) # spotify 제공 id
     doc_ref = db.collection(COLLECTION_NAME).document(doc_id)
     
     # Firestore 필드에 ID가 중복 저장되지 않게 딕셔너리에서 문서 ID로 썼던 행 지움
-    doc_data_without_id = row.drop('trackDocPos').to_dict() 
+    doc_data_without_id = row.drop('track_id').to_dict() 
     batch.set(doc_ref, doc_data_without_id)
     
     count += 1
