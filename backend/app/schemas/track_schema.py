@@ -25,7 +25,7 @@ Track_df = Track_df[['track_id', 'track_name', 'track_artist',
 # 중복, NULL 값 처리, 인덱스 재정립
 Track_df = Track_df.drop_duplicates().dropna().reset_index(drop=True)
 
-# COLLECTION_NAME = "Tracks" # Firestore 컬렉션 이름
+# 배치 쓰기 준비
 batch = db.batch()
 count = 0
 
