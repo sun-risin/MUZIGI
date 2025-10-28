@@ -140,7 +140,7 @@ def tracks_recommend(d, traits):
     # Firestore에서 danceability 기준으로 1차 필터링 - 복합 인덱스 생성 시 요금 발생 가능...
     try:
         track_docs = list(
-            db.collection("Track")
+            db.collection("Tracks")
             .where(filter=FieldFilter("danceability", ">=", float(danceability[0])))
             .where(filter=FieldFilter("danceability", "<=", float(danceability[1])))
             .stream()
@@ -169,8 +169,8 @@ def tracks_recommend(d, traits):
     recommend_list = []
     for reco in recommend_track_list:
         song_info = {
-            "title" : f'{reco["song_title"]}',
-            "artist": f'{reco["artist"]}'}
+            "title" : f'{reco["track_name"]}',
+            "artist": f'{reco["track_artist"]}'}
         recommend_list.append(song_info)
     
     return recommend_list
