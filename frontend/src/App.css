@@ -37,7 +37,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding: 50px;
+  padding: 40px;
 }
 
 .sidebar {

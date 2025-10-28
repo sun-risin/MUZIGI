@@ -12,7 +12,6 @@
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
-  padding: 20px; 
   transition: margin-right 0.3s ease-in-out; 
   margin-right: 0; /* 기본 상태 (사이드바 닫힘) */
 }
@@ -34,4 +33,23 @@
   padding-top: 20px; 
   border-top: 1px solid #eee; 
   background-color: #fff; 
+}
+
+/* 사이드바 열기*/
+.sidebar-open-btn {
+  position: fixed;
+  right: 20px; 
+  top: 8px;/*헤더 위치의 중앙에 오도록 함*/
+  background-color: #fdfefd;
+  border: none;
+  padding: 10px 5px 10px 10px;
+  cursor: pointer;
+  color: #555;
+  font-size: 1.5rem;
+  transition: right 0.3s ease-in-out; /
+
+}
+
+.sidebar-open-btn.hidden {
+    right: -50px; /* 화면 밖으로 밀어냄 */
 }

@@ -3,9 +3,11 @@ import Chat from './essential/Chat';
 import Emotion from './essential/Emotion';
 import Sidebar from './essential/Sidebar';
 import './MainPage.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 function MainPage({ setIsLoggedIn }) { 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]); // 모든 채팅 메시지 관리
 
   const handleEmotionSelect = async (emotion) => {
@@ -44,6 +46,10 @@ function MainPage({ setIsLoggedIn }) {
     }
   };
 
+  const openSidebar = () =>{
+    setIsOpen(true);
+  }
+
   return (
     <div className="main-page-container">
       <div className= {`content-area ${isSidebarOpen ? 'sidebar-open' : ''}`}>
@@ -60,6 +66,12 @@ function MainPage({ setIsLoggedIn }) {
         setIsOpen={setIsSidebarOpen} 
         setIsLoggedIn={setIsLoggedIn}
       />
+      
+      {!isSidebarOpen&&(
+        <button onClick={()=>setIsSidebarOpen(true)} className='sidebar-open-btn'>
+          <FontAwesomeIcon icon={faBars}/>
+        </button>
+      )}
     </div>
   );
 }

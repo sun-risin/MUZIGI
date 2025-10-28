@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react'; // 1. useState, useEffect 임포트
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import './App.css';
 
 import Layout from './component/Layout'; 
-import Login from './component/Login';   
+import Login from './component/Login'; 
 import SignUp from './component/SignUp';
 import MainPage from './component/MainPage';
 
