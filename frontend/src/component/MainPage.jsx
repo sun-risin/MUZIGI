@@ -14,7 +14,7 @@ function MainPage({ setIsLoggedIn }) {
 useEffect(()=>{
   const initialChatId = localStorage.getItem('chatId');
   if(initialChatId){
-    selectedChatId(initialChatId);
+    setSelectedChatId(initialChatId);
   }
   else{
     console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
