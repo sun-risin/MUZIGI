@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Chat from './essential/Chat';
 import Emotion from './essential/Emotion';
 import Sidebar from './essential/Sidebar';
@@ -9,6 +9,17 @@ import { faBars } from '@fortawesome/free-solid-svg-icons';
 function MainPage({ setIsLoggedIn }) { 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]); // 모든 채팅 메시지 관리
+  const [selectedChatId, setSelectedChatId] = useState(null);
+
+useEffect(()=>{
+  const initialChatId = localStorage.getItem('chatId');
+  if(initialChatId){
+    selectedChatId(initialChatId);
+  }
+  else{
+    console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
+  }
+},[])//[]는 컴포넌트가 처음 마운트될 때 한 번만 실행
 
   const handleEmotionSelect = async (emotion) => {
     try {
@@ -54,7 +65,7 @@ function MainPage({ setIsLoggedIn }) {
     <div className="main-page-container">
       <div className= {`content-area ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="chat-wrapper">
-          <Chat messages={messages} />
+          <Chat selectedChatId={selectedChatId} messages={messages} setMessages={setMessages} />
         </div>
         <div className="emotion-wrapper">
           <Emotion onEmotionSelect={handleEmotionSelect} />
@@ -65,6 +76,8 @@ function MainPage({ setIsLoggedIn }) {
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 
         setIsLoggedIn={setIsLoggedIn}
+        // onChatSelect={handleChatSelect} 나중에 주석 해제
+        // currentChatId={selectedChatId}
       />
       
       {!isSidebarOpen&&(

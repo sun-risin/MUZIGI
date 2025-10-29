@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './Chat.css';
 import Muzigi from '../../assets/Muzigi.png';
 
-function Chat({ messages }) {
+function Chat({selectedChatId, messages }) {
   const [nickname, setNickname] = useState('');
 
   // 닉네임은 Chat 컴포넌트가 직접 로컬 스토리지에서 가져옴 (환영 메시지용)

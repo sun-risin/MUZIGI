@@ -31,15 +31,16 @@ function Login({ setIsLoggedIn }) {
       const data = await response.json();
 
       if (response.ok) {
-        if (data.userToken && data.nickname) { 
+        if (data.userToken && data.nickname&&data.firstChatId) { 
           localStorage.setItem('accessToken', data.userToken); // 토큰 저장
           localStorage.setItem('userNickname', data.nickname); // 닉네임 저장
-          
+          localStorage.setItem('chatId', data.firstChatId);
+
           alert("로그인 성공!");
           setIsLoggedIn(true); // App.jsx의 로그인 상태 변경
           navigate('/chat'); // 채팅 페이지로 이동
         } else {
-          alert("로그인에 성공했으나 사용자 정보를 받지 못했습니다.");
+          alert("로그인 성공, 필수정보(닉네임, chatId를 받지 못했습니다.");
         }
       } else {
         alert(data.message || "아이디 또는 비밀번호가 일치하지 않습니다.");
