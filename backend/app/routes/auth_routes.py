@@ -48,7 +48,7 @@ def signup():
         "nickname" : nickname,
         "userDocId" : new_user_docId, # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
         "chatIds": [first_chatId],        # 리스트 형태로 저장됨
-        "playlistIds" : []  
+        "playlistIds" : []  # TODO - 지금은 재생목록 생성없어서 비어있음, 나중에 4개 채워야 함.
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
@@ -95,6 +95,7 @@ def login():
             "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌,
             "firstChatId" : doc_firstChatId, # 채팅 첫 아이디 - 로그인 시 첫 채팅으로 자동 로드되게 넘겨줌
             "message": " 로그인 성공!"
+            # TODO - 재생목록 아이디 4개 다 전달해주기.
             }), 200     # 로그인 성공
     
     else:               # 비밀번호 다름 ; 로그인 실패
