@@ -170,6 +170,7 @@ def tracks_recommend(d, traits):
     recommend_list = []
     for reco in recommend_track_list:
         song_info = {
+            "trackId" : f'{reco["track_id"]}',  # spotify api를 위해 id 넘김
             "title" : f'{reco["track_name"]}',
             "artist": f'{reco["track_artist"]}'}
         recommend_list.append(song_info)
