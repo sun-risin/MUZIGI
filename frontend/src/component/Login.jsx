@@ -37,7 +37,7 @@ function Login({ setIsLoggedIn }) {
           localStorage.setItem('chatId', data.firstChatId);
 
           alert("로그인 성공!");
-          setIsLoggedIn(true); // App.jsx의 로그인 상태 변경
+          setIsLoggedIn(true); 
           navigate('/chat'); // 채팅 페이지로 이동
         } else {
           alert("로그인 성공, 필수정보(닉네임, chatId를 받지 못했습니다.");

@@ -5,7 +5,6 @@ import Muzigi from '../../assets/Muzigi.png';
 function Chat({selectedChatId, messages }) {
   const [nickname, setNickname] = useState('');
 
-  // 닉네임은 Chat 컴포넌트가 직접 로컬 스토리지에서 가져옴 (환영 메시지용)
   useEffect(() => {
     const storedNickname = localStorage.getItem('userNickname');
     if (storedNickname) {

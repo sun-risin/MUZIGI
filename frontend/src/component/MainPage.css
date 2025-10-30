@@ -6,7 +6,6 @@
   position: relative; 
 }
 
-/* 왼쪽 메인 컨텐츠 영역 */
 .content-area {
   flex-grow: 1; 
   display: flex;
@@ -16,18 +15,12 @@
   margin-right: 0; /* 기본 상태 (사이드바 닫힘) */
 }
 
-.content-area.sidebar-open {
-  margin-right: 280px; 
-}
-
-/* 채팅창 영역 */
 .chat-wrapper {
   flex-grow: 1; 
   overflow-y: auto; 
   padding-bottom: 20px; 
 }
 
-/* 감정 버튼 영역 */
 .emotion-wrapper {
   flex-shrink: 0; 
   padding-top: 20px; 

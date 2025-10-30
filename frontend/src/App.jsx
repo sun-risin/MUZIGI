@@ -8,7 +8,6 @@ import SignUp from './component/SignUp';
 import MainPage from './component/MainPage';
 
 function App() {
-
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
