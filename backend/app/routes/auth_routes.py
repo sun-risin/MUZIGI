@@ -47,7 +47,8 @@ def signup():
         "password" : hashed_pw,
         "nickname" : nickname,
         "userDocId" : new_user_docId, # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
-        "chatIds": [first_chatId]        # 리스트 형태로 저장됨
+        "chatIds": [first_chatId],        # 리스트 형태로 저장됨
+        "playlistIds" : []  
     })
 
     return jsonify({"message": "회원가입 성공"}), 201
