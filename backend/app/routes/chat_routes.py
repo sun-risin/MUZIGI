@@ -37,11 +37,11 @@ def emotion_select(emotionName):
     try:
         docId = emotion[emotionName]
     except KeyError: # 매핑되는 감정값이 없을 때
-        return None
+        return "매핑되는 감정값이 없음"
 
     emotion_doc = db.collection("emotionCategory").document(docId).get()
     if not emotion_doc.exists:
-        return None
+        return "감정 문서가 없음..."
 
     return emotion_doc.to_dict() # 선택한 감정에 따른 감정 문서 딕셔너리로 반환
 
@@ -137,29 +137,29 @@ def tracks_recommend(d, traits):
     except:
         return "tratis에서 매핑을 못했어"
     
-    # Firestore에서 danceability 기준으로 1차 필터링 - 복합 인덱스 생성 시 요금 발생 가능...
+    filtered_tracks = []
+    
+    # Firestore에서 음악 특성값 기준 필터링 - 복합 인덱스 생성돼 있어야 함
+    # TODO - 지금은 Kpop만 있음! 해외곡도 추가하기~
     try:
         track_docs = list(
-            db.collection("Tracks")
+            db.collection("TracksKpop")
             .where(filter=FieldFilter("danceability", ">=", float(danceability[0])))
             .where(filter=FieldFilter("danceability", "<=", float(danceability[1])))
+            .where(filter=FieldFilter("valence", ">=", float(valence[0])))
+            .where(filter=FieldFilter("valence", "<=", float(valence[1])))
+            .where(filter=FieldFilter("energy", ">=", float(energy[0])))
+            .where(filter=FieldFilter("energy", "<=", float(energy[1])))
             .stream()
         )
-    except:        return "db에서 못찾음"
+            
+    except Exception as e:        
+        print(e)
+        return "db에서 못찾음"
     
-
-    # Python에서 추가 조건(energy, valence) 필터링
-    filtered_tracks = []
-    try:
-        for doc in track_docs:
+    for doc in track_docs:
             data = doc.to_dict()
-            if (
-                float(energy[0]) <= data["energy"] <= float(energy[1])
-                and float(valence[0]) <= data["valence"] <= float(valence[1])
-            ):
-                filtered_tracks.append(data)
-    except:
-        return "추가 조건 필터링 중 문제 발생"
+            filtered_tracks.append(data)
             
     try:
         recommend_track_list = random.sample(filtered_tracks, 3)
@@ -198,8 +198,8 @@ def messages(curr_user):
     
     # --- 뮤지기 버블 ---
     emotion_doc = emotion_select(emotionName)
-    if emotion_doc is None:
-        return jsonify({"message" : "감정 문서 찾기 실패"}), 500
+    if type(emotion_doc) is not dict:
+        return jsonify({"message" : f'{emotion_doc}'}), 500
     
     muzigi_empathy_ment = emotion_empathy(emotion_doc)
     if muzigi_empathy_ment is None:
