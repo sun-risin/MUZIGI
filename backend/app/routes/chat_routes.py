@@ -7,6 +7,7 @@ import random
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
 db = firestore.client()
 
+# TODO - 감정에 맞는 특성값 조정 필요 : 긴장, 슬픔... 이외 감정도 음악 듣고 별로면 변경해야 함
 
 # --- 채팅 모듈 ---
 # 새 채팅 생성 - 생성 채팅 아이디 반환
