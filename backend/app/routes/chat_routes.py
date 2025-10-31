@@ -143,7 +143,7 @@ def tracks_recommend(d, traits):
     # Firestore에서 음악 특성값 기준 필터링 - 복합 인덱스 생성돼 있어야 함
     # TODO - 지금은 Kpop만 있음! 해외곡도 추가하기~
     try:
-        track_docs = list(
+        track_docs_kpop = list(
             db.collection("TracksKpop")
             .where(filter=FieldFilter("danceability", ">=", float(danceability[0])))
             .where(filter=FieldFilter("danceability", "<=", float(danceability[1])))
@@ -153,6 +153,18 @@ def tracks_recommend(d, traits):
             .where(filter=FieldFilter("energy", "<=", float(energy[1])))
             .stream()
         )
+        track_docs_foreign = list(
+            db.collection("TracksPopular")
+            .where(filter=FieldFilter("danceability", ">=", float(danceability[0])))
+            .where(filter=FieldFilter("danceability", "<=", float(danceability[1])))
+            .where(filter=FieldFilter("valence", ">=", float(valence[0])))
+            .where(filter=FieldFilter("valence", "<=", float(valence[1])))
+            .where(filter=FieldFilter("energy", ">=", float(energy[0])))
+            .where(filter=FieldFilter("energy", "<=", float(energy[1])))
+            .stream()
+        )
+        
+        track_docs = track_docs_kpop + track_docs_foreign
             
     except Exception as e:        
         print(e)
@@ -160,6 +172,7 @@ def tracks_recommend(d, traits):
     
     for doc in track_docs:
             data = doc.to_dict()
+            data["track_id"] = doc.id
             filtered_tracks.append(data)
             
     try:
