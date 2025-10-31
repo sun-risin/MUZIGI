@@ -43,6 +43,10 @@
 
 }
 
+.sidebar-open-btn:hover {
+    color: #000;
+}
+
 .sidebar-open-btn.hidden {
     right: -50px; /* 화면 밖으로 밀어냄 */
 }

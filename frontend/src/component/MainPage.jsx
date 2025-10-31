@@ -58,7 +58,7 @@ useEffect(()=>{
   };
 
   const openSidebar = () =>{
-    setIsOpen(true);
+    setIsSidebarOpen(true);
   }
 
   return (
