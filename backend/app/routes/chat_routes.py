@@ -141,7 +141,6 @@ def tracks_recommend(d, traits):
     filtered_tracks = []
     
     # Firestore에서 음악 특성값 기준 필터링 - 복합 인덱스 생성돼 있어야 함
-    # TODO - 지금은 Kpop만 있음! 해외곡도 추가하기~
     try:
         track_docs_kpop = list(
             db.collection("TracksKpop")
