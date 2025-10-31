@@ -6,3 +6,4 @@ class UserSchema(Schema):
     nickname = fields.String(required=True, validate=validate.Length(min=1))
     userDocId = fields.String()
     chatIds = fields.List(fields.String())
+    playlistIds = fields.List(fields.String())
