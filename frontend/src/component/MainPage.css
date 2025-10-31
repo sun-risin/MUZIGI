@@ -15,6 +15,10 @@
   margin-right: 0; /* 기본 상태 (사이드바 닫힘) */
 }
 
+.content-area.sidebar-open {
+  margin-right: 280px; /* 사이드바 너비(280px)만큼 오른쪽 여백 추가 */
+}
+
 .chat-wrapper {
   flex-grow: 1; 
   overflow-y: auto; 

@@ -11,15 +11,62 @@ function MainPage({ setIsLoggedIn }) {
   const [messages, setMessages] = useState([]); // 모든 채팅 메시지 관리
   const [selectedChatId, setSelectedChatId] = useState(null);
 
-useEffect(()=>{
-  const initialChatId = localStorage.getItem('chatId');
-  if(initialChatId){
-    setSelectedChatId(initialChatId);
-  }
-  else{
-    console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
-  }
-},[])//[]는 컴포넌트가 처음 마운트될 때 한 번만 실행
+  useEffect(()=>{
+    const initialChatId = localStorage.getItem('chatId');
+    if(initialChatId){
+      setSelectedChatId(initialChatId);
+    }
+    else{
+      console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
+    }
+  },[]) 
+
+  useEffect(() => {
+    if (!selectedChatId) return;
+
+    const fetchChatHistory = async () => {
+      try {
+        const token = localStorage.getItem('accessToken');
+        if (!token) {
+            console.error("액세스 토큰이 없습니다.");
+            return;
+        }
+
+        const response = await fetch(`http://localhost:5000/api/chat/${selectedChatId}/messages`, {
+          method: 'GET',
+          headers: {
+            'Authorization': `${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('채팅 기록을 불러오는 데 실패했습니다.');
+        }
+
+       const historyData = await response.json(); 
+
+        if (historyData && Array.isArray(historyData.messages)) {
+          const formattedMessages = historyData.messages.map(msg => ({
+            sender: msg.senderType ? 'user' : 'bot', 
+            text: msg.content
+
+          }));
+          setMessages(formattedMessages);
+
+        } else {
+          console.warn("API 응답에 messages 배열이 없거나 형식이 다릅니다:", historyData);
+          setMessages([]);
+        }
+
+      } catch (error) {
+        console.error("API 오류 (채팅 기록 조회):", error);
+        setMessages([{ sender: 'bot', text: '이전 대화 기록을 불러오는 데 실패했습니다.' }]);
+      }
+    };
+
+    fetchChatHistory();
+
+  }, [selectedChatId]); 
 
   const handleEmotionSelect = async (emotion) => {
     try {
@@ -35,7 +82,7 @@ useEffect(()=>{
       });
 
       if (!response.ok) throw new Error('서버 응답 실패');
-      
+
       const data = await response.json(); 
 
       const newUserMessage = { 
