@@ -83,32 +83,32 @@ if count % 500 != 0:
 
 print(f"Kpop 곡들, 총 {count}개의 문서 TracksKpop에 업로드 완료!")
 
-# count = 0 # 다시 0개
+count = 0 # 다시 0개
 
-# # 이외 인기곡 저장 컬렉션 - TracksPopular
-# for index, row in Track_df_popular_foreign.iterrows():
+# 이외 인기곡 저장 컬렉션 - TracksPopular
+for index, row in Track_df_popular_foreign.iterrows():
 
-#     doc_data = row.to_dict() # csv 행 데이터 => Firestore 문서의 데이터 (딕셔너리 형태로 넣어야 됨)
+    doc_data = row.to_dict() # csv 행 데이터 => Firestore 문서의 데이터 (딕셔너리 형태로 넣어야 됨)
 
-#     # 문서 ID 지정
-#     doc_id = str(row['track_id']) # spotify 제공 id
-#     doc_ref = db.collection("TracksPopular").document(doc_id)
+    # 문서 ID 지정
+    doc_id = str(row['track_id']) # spotify 제공 id
+    doc_ref = db.collection("TracksPopular").document(doc_id)
     
-#     # Firestore 필드에 ID가 중복 저장되지 않게 딕셔너리에서 문서 ID로 썼던 행 지움
-#     doc_data_without_id = row.drop('track_id').to_dict() 
-#     batch.set(doc_ref, doc_data_without_id)
+    # Firestore 필드에 ID가 중복 저장되지 않게 딕셔너리에서 문서 ID로 썼던 행 지움
+    doc_data_without_id = row.drop('track_id').to_dict() 
+    batch.set(doc_ref, doc_data_without_id)
     
-#     count += 1
+    count += 1
     
-#     # Firestore는 배치(batch) 쓰기 시 500개 제한 有, 500개마다 한 번씩 커밋(전송)!
-#     if count % 500 == 0:
-#         print(f"{count}개 행 배치 쓰기 중...")
-#         batch.commit()
-#         batch = db.batch() # 새 배치 시작
+    # Firestore는 배치(batch) 쓰기 시 500개 제한 有, 500개마다 한 번씩 커밋(전송)!
+    if count % 500 == 0:
+        print(f"{count}개 행 배치 쓰기 중...")
+        batch.commit()
+        batch = db.batch() # 새 배치 시작
 
-# # 남은 데이터가 있다면 마지막으로 커밋
-# if count % 500 != 0:
-#     print(f"마지막 배치({count % 500}개) 쓰기 중...")
-#     batch.commit()
+# 남은 데이터가 있다면 마지막으로 커밋
+if count % 500 != 0:
+    print(f"마지막 배치({count % 500}개) 쓰기 중...")
+    batch.commit()
 
-# print(f"해외 인기곡들, 총 {count}개의 문서 TracksPopular에 업로드 완료!")
+print(f"해외 인기곡들, 총 {count}개의 문서 TracksPopular에 업로드 완료!")
