@@ -7,12 +7,12 @@ app = create_app()
 
 load_dotenv()   # .env 파일에서 환경 변수 로드
 
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
 PORT = int(os.getenv('PORT', 5000)) 
 
 # REDIRECT_URI도 환경 변수를 우선 사용(배포 시), 없으면 개발용 주소 사용
 #   예: 배포 시 https://api.mydomain.com/auth/callback
-BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://localhost:{PORT}/auth/callback")
+BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/api/spotify/auth/callback")
 REDIRECT_URI = BACKEND_CALLBACK_URL
     
 # Gunicorn으로 실행할 때는 이 부분 실행 X (Gunicorn이 'app' 객체 임포트)

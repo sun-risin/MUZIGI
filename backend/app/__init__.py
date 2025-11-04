@@ -20,7 +20,7 @@ def create_app():
     SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
     
     # CORS 허용 위해 프론트엔드 URL - 배포 생각해서 지정하는 식으로 수정함
-    FRONTEND_URL = os.getenv("FRONTEND_URL", 'http://localhost:5173')
+    FRONTEND_URL = os.getenv("FRONTEND_URL", 'http://127.0.0.1:5173')
     
     # JWT 인증 비밀키 설정
     app.config['MUZIGI_JWT_KEY'] = 'muzigi-secret'
@@ -36,7 +36,7 @@ def create_app():
         initialize_app(cred)
 
     # --- Blueprint 등록 ---    
-    from app.routes import main_route, auth_routes, chat_routes
+    from app.routes import main_route, auth_routes, chat_routes, forSpotify_routes
        
     # 테스트 페이지 렌더링
     app.register_blueprint(main_route.main_blp)
@@ -46,5 +46,8 @@ def create_app():
     
     #chat_routes
     app.register_blueprint(chat_routes.chat_blp)
+    
+    #forSpotify_routes
+    app.register_blueprint(forSpotify_routes.track_blp)
     
     return app

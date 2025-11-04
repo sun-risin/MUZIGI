@@ -99,6 +99,28 @@ def spotify_callback():
         
         # --- React 앱의 메인 페이지로 리디렉션 ---
         return redirect(FRONTEND_URL) 
+        # return redirect("/") # 테스트페이지
 
     except requests.exceptions.HTTPError as e:
         return jsonify({"error": "Failed to retrieve token", "details": str(e)}), 500
+    
+# 테스트 위해서 HTML에서 로그인 상태 확인할 수 있도록 작성한 토큰 반환하는 API
+@track_blp.route("/auth/token", methods=["GET"])
+def get_spotify_token():
+    """
+    /auth/token:
+    HTML(클라이언트)가 현재 로그인 상태를 확인할 수 있도록
+    세션에 저장된 토큰을 JSON으로 반환
+    """
+    access_token = session.get('spotify_access_token')
+    
+    if access_token:
+        print("Returning token to client.")
+        return jsonify({
+            "access_token": access_token
+        })
+    else:
+        print("No token found in session.")
+        return jsonify({
+            "error": "Not logged in"
+        }), 401
