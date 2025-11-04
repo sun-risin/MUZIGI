@@ -27,7 +27,7 @@ SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 SCOPE = "streaming user-read-email user-read-private"
 
-# state 값을 생성하는 헬퍼 함수
+# 무작위 state 값을 생성하는 헬퍼 함수
 def generate_random_string(length):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
