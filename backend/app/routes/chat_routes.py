@@ -228,6 +228,9 @@ def messages(curr_user):
         return jsonify({"message": "추천 음악 리스트 생성 실패"}), 500
     if type(recommend_tracks) is not list:
         return jsonify({"message": f'{recommend_tracks}'}), 500
+    trackIds = []
+    for i in range(len(recommend_tracks)):
+        trackIds.append(recommend_tracks[i]["trackId"])
     
     try:
         muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
@@ -239,7 +242,8 @@ def messages(curr_user):
     return jsonify({
         "message": "버블 테스트 성공\n",
         "user" : user_content,
-        "MUZIGI" : muzigi_content
+        "MUZIGI" : muzigi_content,
+        "trackIds" : trackIds
     }), 200
     
 
