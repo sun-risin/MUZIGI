@@ -11,62 +11,15 @@ function MainPage({ setIsLoggedIn }) {
   const [messages, setMessages] = useState([]); // 모든 채팅 메시지 관리
   const [selectedChatId, setSelectedChatId] = useState(null);
 
-  useEffect(()=>{
-    const initialChatId = localStorage.getItem('chatId');
+  useEffect(() => {
+    const initialChatId = localStorage.getItem('chatId'); // Login.jsx가 저장한 ID
     if(initialChatId){
       setSelectedChatId(initialChatId);
     }
     else{
       console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
     }
-  },[]) 
-
-  useEffect(() => {
-    if (!selectedChatId) return;
-
-    const fetchChatHistory = async () => {
-      try {
-        const token = localStorage.getItem('accessToken');
-        if (!token) {
-            console.error("액세스 토큰이 없습니다.");
-            return;
-        }
-
-        const response = await fetch(`http://localhost:5000/api/chat/${selectedChatId}/messages`, {
-          method: 'GET',
-          headers: {
-            'Authorization': `${token}`
-          }
-        });
-
-        if (!response.ok) {
-          throw new Error('채팅 기록을 불러오는 데 실패했습니다.');
-        }
-
-       const historyData = await response.json(); 
-
-        if (historyData && Array.isArray(historyData.messages)) {
-          const formattedMessages = historyData.messages.map(msg => ({
-            sender: msg.senderType ? 'user' : 'bot', 
-            text: msg.content
-
-          }));
-          setMessages(formattedMessages);
-
-        } else {
-          console.warn("API 응답에 messages 배열이 없거나 형식이 다릅니다:", historyData);
-          setMessages([]);
-        }
-
-      } catch (error) {
-        console.error("API 오류 (채팅 기록 조회):", error);
-        setMessages([{ sender: 'bot', text: '이전 대화 기록을 불러오는 데 실패했습니다.' }]);
-      }
-    };
-
-    fetchChatHistory();
-
-  }, [selectedChatId]); 
+  }, []);
 
   const handleEmotionSelect = async (emotion) => {
     try {
@@ -82,36 +35,36 @@ function MainPage({ setIsLoggedIn }) {
       });
 
       if (!response.ok) throw new Error('서버 응답 실패');
+      
+      const data = await response.json(); // { "user": "...", "MUZIGI": "...", "trackIds": [...] }
 
-      const data = await response.json(); 
-
+      // 1. 사용자 메시지 생성
       const newUserMessage = { 
-        sender: 'user', 
-        text: data.user 
+        senderType: true, // (Firestore 기준: true=사용자)
+        content: data.user 
       };
 
       const botMessage = { 
-        sender: 'bot', 
-        text: data.MUZIGI
+        senderType: false, // (Firestore 기준: false=봇)
+        content: data.MUZIGI,    // 👈 봇 멘트 텍스트
+        trackIds: data.trackIds  // 👈 봇 trackId 배열
       };
       
+      // 3. 두 메시지를 한꺼번에 추가
       setMessages(prevMessages => [...prevMessages, newUserMessage, botMessage]);
 
     } catch (error) {
       console.error("API 오류:", error);
-      const errorMsg = { sender: 'bot', text: '메시지를 처리하는 데 실패했어요. (콘솔 확인!)' };
+      const errorMsg = { senderType: false, content: '메시지를 처리하는 데 실패했어요. (콘솔 확인!)' };
       setMessages(prevMessages => [...prevMessages, errorMsg]);
     }
   };
-
-  const openSidebar = () =>{
-    setIsSidebarOpen(true);
-  }
 
   return (
     <div className="main-page-container">
       <div className= {`content-area ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <div className="chat-wrapper">
+          {/* Chat 컴포넌트에 props 3개 전달 */}
           <Chat selectedChatId={selectedChatId} messages={messages} setMessages={setMessages} />
         </div>
         <div className="emotion-wrapper">
@@ -123,7 +76,7 @@ function MainPage({ setIsLoggedIn }) {
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 
         setIsLoggedIn={setIsLoggedIn}
-        // onChatSelect={handleChatSelect} 나중에 주석 해제
+        // onChatSelect={handleChatSelect} // 나중에 채팅 목록 API 완성되면 주석 해제
         // currentChatId={selectedChatId}
       />
       

@@ -1,0 +1,58 @@
+.music-player-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  margin-top: 10px;
+}
+
+.track-info {
+  flex-grow: 1;
+  margin-right: 15px;
+  min-width: 0;
+}
+
+.track-title {
+  font-weight: bold;
+  font-size: 0.95rem;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.track-artist {
+  font-size: 0.85rem;
+  color: #555;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.play-pause-btn {
+  background-color: #1db954;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.play-pause-btn:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.play-pause-btn:hover:not(:disabled) {
+  background-color: #1ed760;
+}
