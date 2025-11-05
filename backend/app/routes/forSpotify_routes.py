@@ -16,7 +16,8 @@ load_dotenv()
 # 환경 변수에서 값 읽기
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173/chat')
+#리다이렉트할 프론트 위치는 /chat임
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173/chat')
 PORT = int(os.getenv('PORT', 5000))
 BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/api/spotify/auth/callback")
 REDIRECT_URI = BACKEND_CALLBACK_URL
