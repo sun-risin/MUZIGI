@@ -16,23 +16,25 @@ load_dotenv()
 # 환경 변수에서 값 읽기
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173/chat')
 PORT = int(os.getenv('PORT', 5000))
-BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/auth/callback")
+BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/api/spotify/auth/callback")
 REDIRECT_URI = BACKEND_CALLBACK_URL
 
 # 사용할 Spotify API 엔드포인트
 SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
+# 스포티파이 로그인 페이지로 리다이렉트할 때의 scope => 권한 설정
 SCOPE = "streaming user-read-email user-read-private"
 
-# state 값을 생성하는 헬퍼 함수
+# 무작위 state 값을 생성하는 헬퍼 함수
 def generate_random_string(length):
     return ''.join(random.choices(string.ascii_letters + string.digits, k=length))
 
 # 사용자를 Spotify 로그인 페이지로 보냄(리디렉션)
-@track_blp.route("/auth/login", methods=["POST"])
+# 승인 코드를 받아 사용자 승인 요청.
+@track_blp.route("/auth/login", methods=["GET"])
 def spotify_login():
     state = generate_random_string(16)
     session['spotify_state'] = state
@@ -53,7 +55,8 @@ def spotify_login():
 
 
 # Spotify에서 받은 정보로 토큰을 세션에 저장, 본 페이지로 리디렉션
-@track_blp.route("/auth/callback", methods=["POST"])
+# 이전 단계에서 요청한 승인 코드 사용해 액세스 토큰 요청
+@track_blp.route("/auth/callback", methods=["GET"])
 def spotify_callback():
     """
     /auth/callback 엔드포인트:
@@ -94,8 +97,30 @@ def spotify_callback():
         session['spotify_access_token'] = token_data.get('access_token')
         session['spotify_refresh_token'] = token_data.get('refresh_token')
         
-        # --- 중요: React 앱의 메인 페이지로 리디렉션 ---
+        # --- React 앱의 메인 페이지로 리디렉션 ---
         return redirect(FRONTEND_URL) 
+        # return redirect("/") # 테스트페이지
 
-    except requests.exceptions.HTTPError as err:
-        return jsonify({"error": "Failed to retrieve token", "details": str(err)}), 500
+    except requests.exceptions.HTTPError as e:
+        return jsonify({"error": "Failed to retrieve token", "details": str(e)}), 500
+    
+# 테스트 위해서 HTML에서 로그인 상태 확인할 수 있도록 작성한 토큰 반환하는 API
+@track_blp.route("/auth/token", methods=["GET"])
+def get_spotify_token():
+    """
+    /auth/token:
+    HTML(클라이언트)가 현재 로그인 상태를 확인할 수 있도록
+    세션에 저장된 토큰을 JSON으로 반환
+    """
+    access_token = session.get('spotify_access_token')
+    
+    if access_token:
+        print("Returning token to client.")
+        return jsonify({
+            "access_token": access_token
+        })
+    else:
+        print("No token found in session.")
+        return jsonify({
+            "error": "Not logged in"
+        }), 401

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify 인증 테스트</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 700px; margin: auto; }
+        a { color: #1DB954; font-weight: bold; text-decoration: none; padding: 10px 20px; background: #1DB954; color: white; border-radius: 50px; display: inline-block; margin-top: 10px;}
+        pre { background: #f4f4f4; padding: 15px; border-radius: 8px; word-wrap: break-word; white-space: pre-wrap; }
+        #status { font-weight: bold; }
+        .success { color: #1DB954; }
+        .error { color: #d93025; }
+    </style>
+</head>
+<body>
+    <h1>Spotify 인증 흐름 테스트</h1>
+    <p>이 페이지는 Flask 서버의 인증 API가 잘 작동하는지 확인하기 위한 테스트 클라이언트입니다.</p>
+    
+    <hr>
+
+    <h2>1. 로그인 상태 확인</h2>
+    <p>페이지가 로드될 때, Flask 서버의 <code>/auth/token</code> API를 호출하여 세션에 토큰이 있는지 확인합니다.</p>
+    <pre id="status">확인 중...</pre>
+
+    <hr>
+
+    <h2>2. 로그인 시도</h2>
+    <p>아래 링크를 클릭하면 Flask 서버의 <code>/auth/login</code> API를 호출합니다.</p>
+    <a href="/api/spotify/auth/login">Spotify로 로그인하기</a>
+    
+    <script>
+        // 페이지가 로드되었을 때 자동으로 로그인 상태를 확인합니다.
+        window.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+        });
+
+        async function checkLoginStatus() {
+            const statusEl = document.getElementById('status');
+            
+            try {
+                // Flask 서버의 /auth/token API 호출
+                // credentials: 'include' 옵션이 세션 쿠키를 함께 보내는 핵심입니다.
+                // 하지만 지금은 같은 도메인(127.0.0.1:5000)에서 서빙되므로
+                // 이 옵션이 없어도 쿠키가 자동으로 전송됩니다.
+                const response = await fetch('/api/spotify/auth/token');
+                const data = await response.json();
+
+                if (response.ok && data.access_token) {
+                    // 성공: 세션에서 토큰을 가져옴
+                    statusEl.textContent = "로그인 성공! (세션에서 토큰을 가져왔습니다.)\n\n";
+                    statusEl.textContent += `Access Token (일부): ${data.access_token.substring(0, 20)}...`;
+                    statusEl.className = 'success';
+                } else {
+                    // 실패: 세션에 토큰이 없음
+                    statusEl.textContent = "로그인되지 않았습니다. (세션에 토큰이 없습니다.)\n\n";
+                    statusEl.textContent += `(서버 응답: ${JSON.stringify(data)})`;
+                    statusEl.className = 'error';
+                }
+            } catch (error) {
+                statusEl.textContent = `상태 확인 중 오류 발생: ${error.message}`;
+                statusEl.className = 'error';
+            }
+        }
+    </script>
+</body>
+</html>
