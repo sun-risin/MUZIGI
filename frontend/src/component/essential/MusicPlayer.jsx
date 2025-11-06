@@ -119,7 +119,7 @@ function MusicPlayer({ music }) {
       </div>
 
       {isPlayerReady ? (
-        // 1. (로그인 됨) 플레이어가 준비되면 -> 재생/일시정지 "버튼"
+        // 로그인 된 상태-> 플레이어가 준비되면 -> 재생/일시정지 "버튼"
         <button 
           type="button" 
           onClick={handlePlayPause} 
@@ -128,12 +128,10 @@ function MusicPlayer({ music }) {
           <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
         </button>
       ) : (
-        // 2. (로그인 안 됨) 플레이어가 준비 안 됐으면 -> "새 탭" 로그인 "링크"
+        // 로그인 안 된 상태-> 스포티파이로 이동-> 로그인 후 다시 돌아옴
         <a 
           href="http://127.0.0.1:5000/api/spotify/auth/login" 
           className="play-pause-btn"
-          target="_blank" // 👈 🚨 이게 핵심입니다! (새 탭으로 열기)
-          rel="noopener noreferrer" // 👈 (보안을 위해 추가)
         >
           <FontAwesomeIcon icon={faSpinner} spin />
         </a>

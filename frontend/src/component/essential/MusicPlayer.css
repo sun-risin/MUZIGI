@@ -34,7 +34,7 @@
 }
 
 .play-pause-btn {
-  background-color: #1db954;
+  background-color: #4b77d8;/*컬러 팔레트 사용*/
   color: white;
   border: none;
   border-radius: 50%;
@@ -54,5 +54,5 @@
 }
 
 .play-pause-btn:hover:not(:disabled) {
-  background-color: #1ed760;
+  background-color: #4b77d8CC;/*cc는 투명하게 해주는거 80%*/
 }
