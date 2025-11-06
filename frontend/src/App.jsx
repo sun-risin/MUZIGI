@@ -11,20 +11,18 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // 1. Muzigi 로그인 상태 확인 (기존 로직)
     const token = localStorage.getItem('accessToken');
     if (token) {
       setIsLoggedIn(true); 
     }
-    setIsLoading(false); // Muzigi 로딩은 여기서 끝냄
+    setIsLoading(false);
 
     const getSpotifyToken = async () => {
       try {
         // (1) API 명세서에 나온 "토큰 확인" API 호출
-        // (http://127.0.0.1:5000는 예시 백엔드 주소입니다)
         const response = await fetch('http://127.0.0.1:5000/api/spotify/auth/token', {
           method: 'GET',
-          credentials: 'include' // 👈 쿠키(세션) 전송을 위해 필수!
+          credentials: 'include'
         });
 
         const data = await response.json();
