@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import './Chat.css';
 import Muzigi from '../../assets/Muzigi.png';
 import MusicPlayer from './MusicPlayer'; // 👈 1. MusicPlayer 임포트
@@ -34,9 +34,12 @@ function parseAndZipMusic(muzikiText, trackIds) {
 function Chat({ selectedChatId, messages, setMessages }) {
   const [nickname, setNickname] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const chatListRef = useRef(null);//스크롤할 ref 생성 
+  const isInitialLoad=useRef(true);
 
   // 3. (신규!) selectedChatId가 바뀔 때마다 채팅 기록 불러오기
   useEffect(() => {
+    isInitialLoad.current=true;
     const fetchChatHistory = async () => {
       setIsLoading(true);
       const token = localStorage.getItem('accessToken');
@@ -74,9 +77,45 @@ function Chat({ selectedChatId, messages, setMessages }) {
     fetchChatHistory();
   }, [selectedChatId, setMessages]); // selectedChatId가 바뀔 때마다 실행!
 
+  // 🟢 Chat.jsx의 useLayoutEffect 훅을 이걸로 통째로 교체하세요
+
+useLayoutEffect(() => {
+  if (chatListRef.current) {
+    const container = chatListRef.current;
+
+    // 1. (먼저) 현재 상태를 체크합니다.
+    //    - 지금이 첫 로드인가?
+    //    - (또는) 사용자가 이미 맨 아래에 스크롤해 있는가?
+    const isFirstLoad = isInitialLoad.current;
+    const isScrolledToBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 30;
+
+    // 2. (나중에) 렌더링이 확실히 끝난 후(setTimeout 0) 스크롤을 실행합니다.
+    setTimeout(() => {
+      
+      // (Case 1) 첫 로드인 경우 (반드시 실행)
+      if (isFirstLoad && messages.length > 0) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'auto' // 'auto' (즉시 이동)
+        });
+        isInitialLoad.current = false; // 플래그 해제
+      } 
+      
+      // (Case 2) 새 메시지이고, 사용자가 이미 맨 아래에 있었던 경우
+      else if (isScrolledToBottom) {
+        container.scrollTo({
+          top: container.scrollHeight,
+          behavior: 'smooth' // 'smooth' (부드럽게 이동)
+        });
+      }
+
+    }, 0); // 👈 이 setTimeout(0)이 두 경우 모두에 적용되는 것이 핵심입니다.
+  }
+}, [messages]); // 'messages' 배열이 바뀔 때마다 실행
+
   // 4. (수정!) 렌더링 로직
   return (
-    <div className="chat-container">
+    <div className="chat-container" ref={chatListRef}>
       {messages.length === 0 && !isLoading && (
           <div className="chat-welcome">
              <img src={Muzigi} alt="헤드폰 로고" className="headphone-logo" />
