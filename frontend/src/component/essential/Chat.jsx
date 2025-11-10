@@ -3,7 +3,7 @@ import './Chat.css';
 import Muzigi from '../../assets/Muzigi.png';
 import MusicPlayer from './MusicPlayer'; // 👈 1. MusicPlayer 임포트
 
-// 2. (신규!) 봇 멘트 텍스트를 파싱(해석)해서 노래 목록과 짝짓는 함수
+// 봇 멘트 텍스트를 파싱(해석)해서 노래 목록과 짝짓는 함수
 function parseAndZipMusic(muzikiText, trackIds) {
   if (!muzikiText || !trackIds || trackIds.length === 0) {
     return { botMent: muzikiText, musicList: [] };
@@ -77,19 +77,15 @@ function Chat({ selectedChatId, messages, setMessages }) {
     fetchChatHistory();
   }, [selectedChatId, setMessages]); // selectedChatId가 바뀔 때마다 실행!
 
-  // 🟢 Chat.jsx의 useLayoutEffect 훅을 이걸로 통째로 교체하세요
-
 useLayoutEffect(() => {
   if (chatListRef.current) {
     const container = chatListRef.current;
 
-    // 1. (먼저) 현재 상태를 체크합니다.
-    //    - 지금이 첫 로드인가?
-    //    - (또는) 사용자가 이미 맨 아래에 스크롤해 있는가?
+    // 첫 로드인지, 스크롤이 현재 맨 아래에 있는지 확인
     const isFirstLoad = isInitialLoad.current;
     const isScrolledToBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 30;
 
-    // 2. (나중에) 렌더링이 확실히 끝난 후(setTimeout 0) 스크롤을 실행합니다.
+    // 렌더링이 확실히 끝난 후(setTimeout 0) 스크롤을 실행
     setTimeout(() => {
       
       // (Case 1) 첫 로드인 경우 (반드시 실행)
@@ -105,15 +101,15 @@ useLayoutEffect(() => {
       else if (isScrolledToBottom) {
         container.scrollTo({
           top: container.scrollHeight,
-          behavior: 'smooth' // 'smooth' (부드럽게 이동)
+          behavior: 'smooth'
         });
       }
 
-    }, 0); // 👈 이 setTimeout(0)이 두 경우 모두에 적용되는 것이 핵심입니다.
+    }, 0);
   }
 }, [messages]); // 'messages' 배열이 바뀔 때마다 실행
 
-  // 4. (수정!) 렌더링 로직
+  // 렌더링 로직
   return (
     <div className="chat-container" ref={chatListRef}>
       {messages.length === 0 && !isLoading && (
