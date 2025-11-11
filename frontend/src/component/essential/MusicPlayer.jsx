@@ -1,137 +1,142 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner } from '@fortawesome/free-solid-svg-icons';
 import './MusicPlayer.css';
 
-// 💡 music 객체 { title, artist, trackId }를 props로 받습니다.
-function MusicPlayer({ music }) {
+function MusicPlayer({ music, isPlayerReady, deviceId }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [player, setPlayer] = useState(null);
-  const [isPlayerReady, setIsPlayerReady] = useState(false);
-  const [deviceId, setDeviceId] = useState(null);
+  const previewTimerRef = useRef(null); // 30초 타이머 ID 저장을 위함
 
-  // 1. Spotify SDK(리모컨) 초기화 (전역으로 관리)
+  // 컴포넌트가 사라질 때(unmount) 타이머가 남아있지 않도록 정리
   useEffect(() => {
-    // SDK 중복 초기화 방지
-    if (window.SpotifyPlayerInstance) {
-        setPlayer(window.SpotifyPlayerInstance);
-        setIsPlayerReady(window.SpotifyPlayerInstance.isReady || false);
-        setDeviceId(window.SpotifyPlayerInstance.deviceId || null);
-        return;
-    }
-
-    // App.jsx가 index.html에 SDK를 로드하면 이 함수가 실행됨
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      // App.jsx가 저장한 Spotify 토큰을 가져옴
-      const token = localStorage.getItem('spotifyAccessToken');
-      
-      // 🚨 토큰이 없으면 SDK 초기화 자체를 멈춤 (로그인 안 된 상태)
-      if (!token) {
-        console.warn("Spotify SDK: 토큰이 없어 플레이어를 초기화할 수 없습니다.");
-        setIsPlayerReady(false); // 👈 isPlayerReady를 false로 유지
-        return; 
+    return () => {
+      if (previewTimerRef.current) {
+        clearTimeout(previewTimerRef.current);
       }
-
-      // (토큰이 있을 때만) 플레이어 초기화 진행
-      const spotifyPlayer = new window.Spotify.Player({
-        name: 'Muzigi Web Player',
-        getOAuthToken: (cb) => { cb(token); },
-        volume: 0.5
-      });
-
-      spotifyPlayer.addListener('ready', ({ device_id }) => {
-        console.log('Spotify 플레이어 준비 완료, Device ID:', device_id);
-        setIsPlayerReady(true); // 👈 (중요) 이때 true로 변경
-        setDeviceId(device_id);
-        // ⭐️ 플레이어 인스턴스와 상태를 전역 객체에 저장
-        window.SpotifyPlayerInstance = spotifyPlayer;
-        window.SpotifyPlayerInstance.isReady = true;
-        window.SpotifyPlayerInstance.deviceId = device_id;
-      });
-
-      spotifyPlayer.addListener('player_state_changed', (state) => {
-        if (!state) return;
-        setIsPlaying(!state.paused);
-      });
-
-      spotifyPlayer.addListener('authentication_error', ({ message }) => {
-        console.error('Spotify 인증 실패:', message);
-        // (선택) 여기서 토큰 갱신 API 호출
-      });
-
-      spotifyPlayer.connect();
-      setPlayer(spotifyPlayer);
     };
+  }, []);
 
-    if (!window.Spotify) console.error("Spotify SDK 스크립트가 index.html에 없습니다.");
-  }, []); // [] : 컴포넌트 마운트 시 한 번만 실행
-
-  // 2. (수정됨) 재생/일시정지 전용 함수
-  // (로그인 로직은 <a> 태그가 처리하므로 여기서 빠짐)
   const handlePlayPause = async () => {
-    // 1. 플레이어가 준비되었는지 확인 (버튼이 보이므로 항상 true여야 함)
-    if (!player || !isPlayerReady || !deviceId) {
-      console.warn("Spotify 플레이어가 아직 준비되지 않았습니다.");
-      return; 
+    // 1. 함수가 시작될 때, 이전에 예약된 30초 타이머가 있다면 즉시 취소
+    if (previewTimerRef.current) {
+      clearTimeout(previewTimerRef.current);
+      previewTimerRef.current = null;
     }
-    
+
     const token = localStorage.getItem('spotifyAccessToken');
+    const player = window.SpotifyPlayerInstance;
 
-    // 2. 진짜 재생/일시정지 로직 실행
-    try {
-      const currentState = await player.getCurrentState();
+    if (!player || !isPlayerReady || !deviceId || !token) {
+      console.warn("플레이어 준비 안됨, deviceId 또는 토큰 없음", {
+        isPlayerReady,
+        deviceId,
+        token: !!token,
+      });
+      return;
+    }
 
-      // (A) 이미 이 노래가 재생 중이면 -> 일시정지
-      if (currentState && !currentState.paused && currentState.track_window.current_track.id === music.trackId) {
-        player.pause();
-      } else {
-        // (B) 다른 노래거나 정지 상태면 -> 이 trackId로 재생
-        await fetch(`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            uris: [`spotify:track:${music.trackId}`],
-            position_ms: 0
-          })
-        });
-
-        // 30초 뒤 멈춤 기능
-        setTimeout(() => {
-          if (player && typeof player.pause === 'function') {
-            player.pause();
-          }
-        }, 30000); 
+    // 2. UI의 'isPlaying' 상태를 기준으로 동작을 결정 (API 호출 최소화)
+    if (isPlaying) {
+      // --- 의도: 일시정지 ---
+      // (이미 재생 중이므로, SDK의 내장 pause()만 호출)
+      try {
+        await player.pause();
+        setIsPlaying(false); // UI를 '재생' 아이콘으로 변경
+        console.log("수동 일시정지 성공");
+      } catch (e) {
+        console.error("수동 일시정지 실패:", e);
+        setIsPlaying(false); // 실패 시에도 UI는 복구
       }
-    } catch (error) {
-      console.error("Spotify 재생 API 호출 실패:", error);
+    } else {
+      // --- 의도: 재생 ---
+      try {
+        // 💡 [핵심 수정] 1단계: 이 브라우저(deviceId)로 재생을 *전송*(활성화)합니다.
+        // 이것이 Premium 계정 + 올바른 Scope에도 발생하는 404 에러의 해결책입니다.
+        const transferResponse = await fetch(
+          `https://api.spotify.com/v1/me/player/play...`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              device_ids: [deviceId], // 이 기기를 활성화
+              play: false,           // 재생은 아직 하지 않음
+            }),
+          }
+        );
+
+        if (!transferResponse.ok) {
+          throw new Error(
+            `Spotify (Transfer) API failed: ${transferResponse.status}`
+          );
+        }
+
+        console.log("재생 기기 '활성화(Transfer)' 성공.");
+
+        // 💡 [핵심 수정] 2단계: 기기 활성화가 성공하면, *그때* 트랙 재생을 요청합니다.
+        const playResponse = await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uris: [`spotify:track:${music.trackId}`], // 재생할 트랙
+              position_ms: 0,
+            }),
+          }
+        );
+
+        if (!playResponse.ok) {
+          throw new Error(`Spotify (Play) API failed: ${playResponse.status}`);
+        }
+
+        setIsPlaying(true); // UI를 '일시정지' 아이콘으로 변경
+        console.log("수동 재생 시작");
+
+        // 3. 30초 미리듣기 타이머 시작
+        previewTimerRef.current = setTimeout(() => {
+          if (window.SpotifyPlayerInstance) {
+            window.SpotifyPlayerInstance.pause();
+            setIsPlaying(false); // '재생' 아이콘으로 복구
+            previewTimerRef.current = null;
+            console.log("30초 미리듣기 타이머 종료");
+          }
+        }, 30000); // 30초
+
+      } catch (error) {
+        console.error("Spotify 재생 API 호출 실패(전송 또는 재생):", error);
+        setIsPlaying(false); // 실패 시 '재생' 아이콘으로 되돌림
+      }
     }
   };
 
-  // 3. (수정됨) 렌더링 로직
   return (
     <div className="music-player-container">
       <div className="track-info">
-        <p className="track-title">{music.title || "제목 정보 없음"}</p>
-        <p className="track-artist">{music.artist || "아티스트 정보 없음"}</p>
+        <p className="track-title">{music.title || '제목 정보 없음'}</p>
+        <p className="track-artist">{music.artist || '아티스트 정보 없음'}</p>
       </div>
 
       {isPlayerReady ? (
-        // 로그인 된 상태-> 플레이어가 준비되면 -> 재생/일시정지 "버튼"
-        <button 
-          type="button" 
-          onClick={handlePlayPause} 
-          className="play-pause-btn" 
+        <button
+          type="button"
+          onClick={handlePlayPause}
+          className="play-pause-btn"
+          disabled={!deviceId} // deviceId가 없으면 버튼 비활성화
         >
           <FontAwesomeIcon icon={isPlaying ? faPause : faPlay} />
         </button>
       ) : (
-        // 로그인 안 된 상태-> 스포티파이로 이동-> 로그인 후 다시 돌아옴
-        <a 
-          href="http://127.0.0.1:5000/api/spotify/auth/login" 
+        // (로그인 안 됨 or SDK 로딩 중)
+        <a
+          href="http://127.0.0.1:5000/api/spotify/auth/login"
           className="play-pause-btn"
+          title="Spotify 로그인 필요"
         >
           <FontAwesomeIcon icon={faSpinner} spin />
         </a>

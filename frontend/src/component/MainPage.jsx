@@ -36,7 +36,7 @@ function MainPage({ setIsLoggedIn }) {
 
       if (!response.ok) throw new Error('서버 응답 실패');
       
-      const data = await response.json(); // { "user": "...", "MUZIGI": "...", "trackIds": [...] }
+      const data = await response.json(); 
 
       // 1. 사용자 메시지 생성
       const newUserMessage = { 
@@ -46,8 +46,8 @@ function MainPage({ setIsLoggedIn }) {
 
       const botMessage = { 
         senderType: false, // (Firestore 기준: false=봇)
-        content: data.MUZIGI,    // 👈 봇 멘트 텍스트
-        trackIds: data.trackIds  // 👈 봇 trackId 배열
+        content: data.MUZIGI,    // 봇 멘트 텍스트
+        recommendTracks: data.recommendTracks
       };
       
       // 3. 두 메시지를 한꺼번에 추가
@@ -76,8 +76,6 @@ function MainPage({ setIsLoggedIn }) {
         isOpen={isSidebarOpen} 
         setIsOpen={setIsSidebarOpen} 
         setIsLoggedIn={setIsLoggedIn}
-        // onChatSelect={handleChatSelect} // 나중에 채팅 목록 API 완성되면 주석 해제
-        // currentChatId={selectedChatId}
       />
       
       {!isSidebarOpen&&(
