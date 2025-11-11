@@ -264,12 +264,9 @@ def chat_show_messages(curr_user, chatId):
                 "senderType": data.get("senderType"),
                 "senderId": data.get("senderId"),
                 "content": data.get("content"),
+                "recommendTracks" : data.get("recommendTracks"),
                 "created_at": data.get("created_at")
             })
-            if data.get("recommendTracks") != None:
-                message_list.append({ "recommendTracks" : data.get("recommendTracks")})
-            else:
-                message_list.append({ "recommendTracks" : None})
         
         return jsonify({"chatId": chatId, "messages": message_list}), 200
 
