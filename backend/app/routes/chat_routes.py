@@ -102,7 +102,7 @@ def MUZIGI_save_message(chatId, empathy, recommend):
         "created_at": firestore.SERVER_TIMESTAMP
     })
     
-    print(f"추천 음악들: {new_message["recommendTracks"]}")
+    print(f"추천 음악들: {new_message['recommendTracks']}")
     
     return content
 
