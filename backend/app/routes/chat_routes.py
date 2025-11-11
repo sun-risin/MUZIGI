@@ -241,7 +241,8 @@ def messages(curr_user):
     return jsonify({
         "message": "버블 테스트 성공\n",
         "user" : user_content,
-        "MUZIGI" : muzigi_content
+        "MUZIGI" : muzigi_content,
+        "recommendTracks" : recommend_tracks # 직접 넘겨주기도 함
     }), 200
     
 
