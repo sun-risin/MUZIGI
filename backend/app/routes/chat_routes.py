@@ -98,6 +98,7 @@ def MUZIGI_save_message(chatId, empathy, recommend):
         "content": content,
         "senderType": False,
         "senderId": "MUZIGI",
+        "recommendTracks": recommend,
         "created_at": firestore.SERVER_TIMESTAMP
     })
     
@@ -121,6 +122,7 @@ def user_save_message(userDocId, chatId, emotionName):
         "content": content,
         "senderType": True,
         "senderId": userDocId,
+        "recommendTracks": None, # 사용자는 음악 추천을 보내지 않음
         "created_at": firestore.SERVER_TIMESTAMP
     })
     
@@ -228,9 +230,6 @@ def messages(curr_user):
         return jsonify({"message": "추천 음악 리스트 생성 실패"}), 500
     if type(recommend_tracks) is not list:
         return jsonify({"message": f'{recommend_tracks}'}), 500
-    trackIds = []
-    for i in range(len(recommend_tracks)):
-        trackIds.append(recommend_tracks[i]["trackId"])
     
     try:
         muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
@@ -242,8 +241,7 @@ def messages(curr_user):
     return jsonify({
         "message": "버블 테스트 성공\n",
         "user" : user_content,
-        "MUZIGI" : muzigi_content,
-        "trackIds" : trackIds
+        "MUZIGI" : muzigi_content
     }), 200
     
 
@@ -268,6 +266,10 @@ def chat_show_messages(curr_user, chatId):
                 "content": data.get("content"),
                 "created_at": data.get("created_at")
             })
+            if data.get("recommendTracks") != None:
+                message_list.append({ "recommendTracks" : data.get("recommendTracks")})
+            else:
+                message_list.append({ "recommendTracks" : None})
         
         return jsonify({"chatId": chatId, "messages": message_list}), 200
 
