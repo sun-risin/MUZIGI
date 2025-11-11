@@ -199,8 +199,11 @@
 
         const bubble = document.createElement("div");
         bubble.classList.add("bubble");
-        bubble.textContent = msg.content;
-
+        if (msg.recommendTracks != null) {
+          bubble.innerHTML = `${msg.content}<br>${Object.values(msg.recommendTracks[0])}<br>${Object.values(msg.recommendTracks[1])}<br>${Object.values(msg.recommendTracks[2])}`;
+        } else {
+          bubble.textContent = msg.content;
+        }
         msgDiv.appendChild(bubble);
         container.appendChild(msgDiv);
       });
