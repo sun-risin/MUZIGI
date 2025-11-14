@@ -27,7 +27,7 @@ SPOTIFY_AUTH_URL = "https://accounts.spotify.com/authorize"
 SPOTIFY_TOKEN_URL = "https://accounts.spotify.com/api/token"
 
 # 스포티파이 로그인 페이지로 리다이렉트할 때의 scope => 권한 설정
-SCOPE = "streaming user-read-email user-read-private user-modify-playback-state"
+SCOPE = "streaming user-read-email user-read-private user-modify-playback-state playlist-modify-private playlist-modify-public"
 
 # 무작위 state 값을 생성하는 헬퍼 함수
 def generate_random_string(length):
