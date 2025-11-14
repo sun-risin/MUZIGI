@@ -88,7 +88,7 @@ def createPlaylist(curr_user):
         get_profile_response = requests.get(SPOTIFY_GET_PROFILE_URL, headers=profile_header)
         get_profile_response.raise_for_status()
         
-        spotifyId = get_profile_response.get("id") # spotify 고유 id 저장
+        spotifyId = get_profile_response.json().get("id") # spotify 고유 id 저장
         
     except requests.exceptions.HTTPError as e:
         return jsonify({"error" : "사용자 프로필 못 가져왔음"}), 500
@@ -116,7 +116,7 @@ def createPlaylist(curr_user):
                                         params=create_params)
         create_response.raise_for_status()
         
-        new_id = create_response.get("id")
+        new_id = create_response.json().get("id")
         new_playlists_ids[emotion] = new_id
                     
     except requests.exceptions.HTTPError as http_e:
