@@ -13,4 +13,5 @@ playlistHistory_schema = PlaylistHistorySchema()
 @playlist_blp.route("/new", methods=["POST"])
 @login_required
 def createPlaylist(curr_user):
+    data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     return 
