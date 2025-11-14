@@ -63,8 +63,8 @@ function Chat({ selectedChatId, messages, setMessages }) {
       // 스크립트 태그가 없다면 새로 생성합니다.
       console.log("Spotify SDK 스크립트 로딩 시작...");
       const script = document.createElement('script');
-      script.id = scriptId; // 👈 ID를 부여합니다.
-      script.src = 'https://api.spotify.com/v1/me/player/play3...';
+      script.id = scriptId;
+      script.src = 'https://sdk.scdn.co/spotify-player.js';
       script.async = true;
       document.body.appendChild(script);
     }
