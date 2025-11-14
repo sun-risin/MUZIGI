@@ -11,12 +11,6 @@ playlist_schema = PlaylistSchema()
 playlistHistory_schema = PlaylistHistorySchema()
 
 
-# 사용할 Spotify API 엔드포인트
-SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
-SPOTIFY_CREATE_PLAYLIST_URL = "https://api.spotify.com/v1/users/{user_id}/playlists"
-SPOTIFY_ADD_ITEMS_URL = "https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
-
-
 # 재생목록 생성 API
 @playlist_blp.route("/new", methods=["POST"])
 @login_required
@@ -88,6 +82,7 @@ def createPlaylist(curr_user):
     spotifyToken = request_data["spotifyToken"]
     
     # 사용자 프로필 가져오기 API
+    SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
     profile_header = { "Authorization": f"Bearer {spotifyToken}" }
     try:
         get_profile_response = requests.get(SPOTIFY_GET_PROFILE_URL, headers=profile_header)
@@ -100,10 +95,12 @@ def createPlaylist(curr_user):
     
     
     # 재생목록 생성 API
+    SPOTIFY_CREATE_PLAYLIST_URL = f"https://api.spotify.com/v1/users/{spotifyId}/playlists"
     create_headers = {
         "Authorization": f"Bearer {spotifyToken}",
         "Content-Type": "application/json"
     }
+    create_params = { "user_id" : spotifyId }
     new_playlist_ids = {}
     try:
         for new in new_playlist:
@@ -115,9 +112,10 @@ def createPlaylist(curr_user):
             }
             
         create_response = requests.post(SPOTIFY_CREATE_PLAYLIST_URL,
-                                        data=create_data, headers=create_headers,
-                                        params=spotifyId)
+                                        json=create_data, headers=create_headers,
+                                        params=create_params)
         create_response.raise_for_status()
+        
         new_id = create_response.get("id")
         new_playlist_ids[emotion] = new_id
                     
