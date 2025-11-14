@@ -2,6 +2,7 @@ from flask import Blueprint, request, jsonify, current_app
 from firebase_admin import firestore
 from app.routes.auth_routes import login_required
 from app.schemas.playlist_schema import PlaylistSchema, PlaylistHistorySchema
+import requests
 from functools import wraps
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
@@ -60,8 +61,7 @@ def createPlaylist(curr_user):
             --url https://api.spotify.com/v1/me \
             --header 'Authorization: Bearer {access_token}'
             
-        
-        ⇒ 반환값 중 id 사용 (spotify 고유 사용자 id string임, 위 재생목록 API에 사용됨)
+        ⇒ 반환값 중 id 사용 (spotify 고유 사용자 id string임, 재생목록 생성 API에 사용됨)
         
     2. 재생목록 생성 API - **Create Playlist**
         - 호출 예시
@@ -79,5 +79,16 @@ def createPlaylist(curr_user):
     
     request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     spotifyToken = request_data["spotifyToken"]
+    
+    # 사용자 프로필 가져오기 API
+    header = { "Authorization": f"Bearer {spotifyToken}" }
+    try:
+        get_profile_response = requests.get(SPOTIFY_GET_PROFILE_URL, headers=header)
+        get_profile_response.raise_for_status()
+        
+        spotifyId = get_profile_response.get("id") # spotify 고유 id 저장
+        
+    except requests.exceptions.HTTPError as e:
+        return jsonify({"error" : "사용자 프로필 못 가져왔음"}), 500
     
     return 
