@@ -7,19 +7,19 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 function MainPage({ setIsLoggedIn }) { 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState([]); // 모든 채팅 메시지 관리
-  const [selectedChatId, setSelectedChatId] = useState(null);
+   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+   const [messages, setMessages] = useState([]); // 모든 채팅 메시지 관리
+   const [selectedChatId, setSelectedChatId] = useState(null);
 
-  useEffect(() => {
-    const initialChatId = localStorage.getItem('chatId'); // Login.jsx가 저장한 ID
-    if(initialChatId){
-      setSelectedChatId(initialChatId);
-    }
-    else{
-      console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
-    }
-  }, []);
+   useEffect(() => {
+     const initialChatId = localStorage.getItem('chatId'); // Login.jsx가 저장한 ID
+     if(initialChatId){
+       setSelectedChatId(initialChatId);
+       }
+     else{
+       console.warn("로컬스토리지에 chatId 없음, 채팅방 로드 불가");
+     }
+  }, []);
 
   const handleEmotionSelect = async (emotion) => {
     try {
@@ -48,10 +48,10 @@ function MainPage({ setIsLoggedIn }) {
         senderType: false, // (Firestore 기준: false=봇)
         content: data.MUZIGI,    // 봇 멘트 텍스트
         recommendTracks: data.recommendTracks
-      };
-      
-      // 3. 두 메시지를 한꺼번에 추가
-      setMessages(prevMessages => [...prevMessages, newUserMessage, botMessage]);
+       };
+ 
+       // 3. 두 메시지를 한꺼번에 추가
+       setMessages(prevMessages => [...prevMessages, newUserMessage, botMessage]);
 
     } catch (error) {
       console.error("API 오류:", error);

@@ -33,6 +33,12 @@
   text-overflow: ellipsis;
 }
 
+.player-controls{
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .play-pause-btn {
   background-color: #4b77d8;/*컬러 팔레트 사용*/
   color: white;
@@ -55,4 +61,30 @@
 
 .play-pause-btn:hover:not(:disabled) {
   background-color: #4b77d8CC;/*cc는 투명하게 해주는거 80%*/
+}
+
+
+/*좋아요 버튼*/
+.like-btn {
+  margin-left: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 5px;
+  font-size: 1.1rem; /* 아이콘 크기 */
+  color: #555; /* 기본 아이콘 색상 (어두운 회색) */
+  opacity: 0.7; /* 기본적으로 약간 흐리게 */
+  transition: all 0.2s ease-in-out;
+  }
+
+
+/* 좋아요가 눌린 상태 */
+.like-btn.liked {
+ color: #e63946;
+ opacity: 1;
+}
+
+.track-info {
+ flex-grow: 1; /* 트랙 정보가 남은 공간을 다 차지하도록 */
+ margin-right: 10px;
 }
