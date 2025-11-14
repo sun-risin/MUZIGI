@@ -24,7 +24,7 @@ def createPlaylist(curr_user):
         return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
     
     # 생성 예정 재생목록 카테고리
-    new_playlist = ["happiness", "excited", "aggro", "sorrow", "nervous"]
+    new_playlists = ["happiness", "excited", "aggro", "sorrow", "nervous"]
     emotions_mapping = {
         "happiness" : "행복",
         "excited" : "신남",
@@ -34,17 +34,17 @@ def createPlaylist(curr_user):
     
     # 재생목록 존재 여부 확인
     try:
-        playlist_ref = db.collection("Playlist").where("userDocId", "==", curr_user["userDocId"])
+        playlist_ref = db.collection("Playlist").where("userDocId", "==", curr_user.get("userDocId"))
         playlists = playlist_ref.stream()
         
         for play in playlists:
             data = play.to_dict()
             emotionName = data["emotionName"]
             
-            if emotionName in new_playlist:
-                new_playlist.remove(emotionName)
+            if emotionName in new_playlists:
+                new_playlists.remove(emotionName)
         
-        if (len(new_playlist) == 0):
+        if (len(new_playlists) == 0):
             return jsonify({"error" : "이미 재생목록 다 있다"}), 401
         
     except Exception as e:
@@ -101,9 +101,9 @@ def createPlaylist(curr_user):
         "Content-Type": "application/json"
     }
     create_params = { "user_id" : spotifyId }
-    new_playlist_ids = {}
+    new_playlists_ids = {}
     try:
-        for new in new_playlist:
+        for new in new_playlists:
             emotion = emotions_mapping.get(new)
             create_data = {
                 "name": f"{emotion}",
@@ -117,7 +117,7 @@ def createPlaylist(curr_user):
         create_response.raise_for_status()
         
         new_id = create_response.get("id")
-        new_playlist_ids[emotion] = new_id
+        new_playlists_ids[emotion] = new_id
                     
     except requests.exceptions.HTTPError as http_e:
         http_e_msg = str(http_e)
@@ -126,4 +126,29 @@ def createPlaylist(curr_user):
         error_msg = str(e)
         return jsonify({"error" : f"뮤지기쪽의 문제로 재생목록 생성 실패 : {error_msg}"}), 500
     
-    return 
+    
+    # 생성된 재생목록 db에 저장하기
+    try:
+        for emo in new_playlists_ids.keys():        
+            
+            # Firestore - Playlist 컬렉션
+            new_playli = db.collection("Playlist").document()
+            new_playli_docId = new_playli.id
+            new_playli.set({
+                "emotionName" : f"{emo}",
+                "playlistId":  new_playli_docId,
+                "userDocId" : curr_user.get("userDocId")
+            })
+            playli_db_errors = playlist_schema.validate(new_playli) # schema로 유효성 검사
+            if playli_db_errors:                      
+                return jsonify({ "error": f"유효하지 않은 입력값 : {playli_db_errors}" }), 400
+            
+            # Firestore - users 컬렉션
+            user_doc = db.collection("users").where("userDocId", "==", curr_user.get("userDocId"))
+            user_doc["playlistIds"].set({
+                f"{emo}" : new_playli_docId
+            })
+            
+    except Exception as e:
+        error_msg = str(e)
+        return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
