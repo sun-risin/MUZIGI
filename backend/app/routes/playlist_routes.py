@@ -144,8 +144,9 @@ def createPlaylist(curr_user):
                 return jsonify({ "error": f"유효하지 않은 입력값 : {playli_db_errors}" }), 400
             
             # Firestore - users 컬렉션
-            user_ref = db.collection("users").document(userDocId).get()
-            if not user_ref.exists: 
+            user_ref = db.collection("users").document(userDocId)
+            user_doc = user_ref.get()
+            if not user_doc.exists: 
                 return jsonify({"message": "유효하지 않은 사용자입니다."}), 401
             
             user_ref.update({ # 추가! (수정이긴 한데 어쨌든...)
