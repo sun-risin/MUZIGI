@@ -155,3 +155,5 @@ def createPlaylist(curr_user):
     except Exception as e:
         error_msg = str(e)
         return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
+    
+    return jsonify({"playlistIds" : new_playlists_ids}), 201
