@@ -31,6 +31,12 @@ def createPlaylist(curr_user):
     
     # 생성 예정 재생목록 카테고리
     new_playlist = ["happiness", "excited", "aggro", "sorrow", "nervous"]
+    emotions_mapping = {
+        "happiness" : "행복",
+        "excited" : "신남",
+        "aggro" : "화남",
+        "sorrow" : "슬픔",
+        "nervous" : "긴장" }
     
     # 재생목록 존재 여부 확인
     try:
@@ -75,20 +81,51 @@ def createPlaylist(curr_user):
             "description": "New playlist description",
             "public": false
             }'
+        ⇒ 반환값 중 id 저장 (spotify에 생성한 재생목록 고유 id string)
     """
     
     request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     spotifyToken = request_data["spotifyToken"]
     
     # 사용자 프로필 가져오기 API
-    header = { "Authorization": f"Bearer {spotifyToken}" }
+    profile_header = { "Authorization": f"Bearer {spotifyToken}" }
     try:
-        get_profile_response = requests.get(SPOTIFY_GET_PROFILE_URL, headers=header)
+        get_profile_response = requests.get(SPOTIFY_GET_PROFILE_URL, headers=profile_header)
         get_profile_response.raise_for_status()
         
         spotifyId = get_profile_response.get("id") # spotify 고유 id 저장
         
     except requests.exceptions.HTTPError as e:
         return jsonify({"error" : "사용자 프로필 못 가져왔음"}), 500
+    
+    
+    # 재생목록 생성 API
+    create_headers = {
+        "Authorization": f"Bearer {spotifyToken}",
+        "Content-Type": "application/json"
+    }
+    new_playlist_ids = {}
+    try:
+        for new in new_playlist:
+            emotion = emotions_mapping.get(new)
+            create_data = {
+                "name": f"{emotion}",
+                "description": f"뮤지기 - 감정 {emotion}에 맞는 플리",
+                "public": False
+            }
+            
+        create_response = requests.post(SPOTIFY_CREATE_PLAYLIST_URL,
+                                        data=create_data, headers=create_headers,
+                                        params=spotifyId)
+        create_response.raise_for_status()
+        new_id = create_response.get("id")
+        new_playlist_ids[emotion] = new_id
+                    
+    except requests.exceptions.HTTPError as http_e:
+        http_e_msg = str(http_e)
+        return jsonify({"error" : f"Spotify쪽에서 재생목록 생성 실패 : {http_e_msg}"}), 500
+    except Exception as e:
+        error_msg = str(e)
+        return jsonify({"error" : f"뮤지기쪽의 문제로 재생목록 생성 실패 : {error_msg}"}), 500
     
     return 
