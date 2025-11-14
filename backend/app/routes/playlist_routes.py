@@ -9,6 +9,13 @@ db = firestore.client()
 playlist_schema = PlaylistSchema()
 playlistHistory_schema = PlaylistHistorySchema()
 
+
+# 사용할 Spotify API 엔드포인트
+SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
+SPOTIFY_CREATE_PLAYLIST_URL = "https://api.spotify.com/v1/users/{user_id}/playlists"
+SPOTIFY_ADD_ITEMS_URL = "https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+
+
 # 재생목록 생성 API
 @playlist_blp.route("/new", methods=["POST"])
 @login_required
@@ -72,7 +79,5 @@ def createPlaylist(curr_user):
     
     request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     spotifyToken = request_data["spotifyToken"]
-    
-    
     
     return 
