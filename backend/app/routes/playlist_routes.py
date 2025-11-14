@@ -129,26 +129,27 @@ def createPlaylist(curr_user):
     try:
         for emo in new_playlists_ids.keys():        
             
-            # Firestore - Playlist 컬렉션
-            new_playli = db.collection("Playlist").document()
-            new_playli_docId = new_playli.id
-            new_playli.set({
+            # Firestore - Playlist 컬렉션            
+            new_playli = db.collection("Playlist").document(new_playlists_ids.get(emo))
+            new_data = {
                 "emotionName" : f"{emo}",
-                "playlistId":  new_playli_docId,
+                "playlistId":  new_playli.id,
                 "userDocId" : curr_user.get("userDocId")
-            })
-            playli_db_errors = playlist_schema.validate(new_playli) # schema로 유효성 검사
+            }
+            playli_db_errors = playlist_schema.validate(new_data) # schema로 유효성 검사
             if playli_db_errors:                      
                 return jsonify({ "error": f"유효하지 않은 입력값 : {playli_db_errors}" }), 400
+            
+            new_playli.set(new_data)
             
             # Firestore - users 컬렉션
             user_ref = db.collection("users").document(userDocId)
             user_doc = user_ref.get()
             if not user_doc.exists: 
-                return jsonify({"message": "유효하지 않은 사용자입니다."}), 401
+                return jsonify({"error": "유효하지 않은 사용자입니다."}), 401
             
             user_ref.update({ # 추가! (수정이긴 한데 어쨌든...)
-                f"playlistIds.{emo}": new_playli_docId
+                f"playlistIds.{emo}": new_playli.id
             })
             
     except Exception as e:
