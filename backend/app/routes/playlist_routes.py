@@ -24,7 +24,7 @@ def createPlaylist(curr_user):
         return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
     userDocId = curr_user.get("userDocId")
     # 생성 예정 재생목록 카테고리
-    new_playlists = ["happiness", "excited", "aggro", "sorrow", "nervous"]
+    new_playlists_name = ["happiness", "excited", "aggro", "sorrow", "nervous"]
     emotions_mapping = {
         "happiness" : "행복",
         "excited" : "신남",
@@ -41,10 +41,10 @@ def createPlaylist(curr_user):
             data = play.to_dict()
             emotionName = data["emotionName"]
             
-            if emotionName in new_playlists:
-                new_playlists.remove(emotionName)
+            if emotionName in new_playlists_name:
+                new_playlists_name.remove(emotionName)
         
-        if (len(new_playlists) == 0):
+        if (len(new_playlists_name) == 0):
             return jsonify({"error" : "이미 재생목록 다 있다"}), 401
         
     except Exception as e:
@@ -54,7 +54,16 @@ def createPlaylist(curr_user):
     # 여기서부터 spotify API 사용
     
     """
-    1. 사용자 프로필 get API - **Get Current User's Profile**
+    1. 가진 재생목록 가져오기 API - **Get Current User's Playlists**
+        - 호출 예시
+            
+            curl --request GET \
+            --url https://api.spotify.com/v1/me/playlists \
+            --header 'Authorization: Bearer {access_token}'        
+        
+        ⇒ 반환값 중 items의 name과 description 사용, 감정 이름과 설명이 일치하는 게 있으면 제외
+        
+    2. 사용자 프로필 get API - **Get Current User's Profile**
         - 호출 예시
             
             curl --request GET \
@@ -63,7 +72,7 @@ def createPlaylist(curr_user):
             
         ⇒ 반환값 중 id 사용 (spotify 고유 사용자 id string임, 재생목록 생성 API에 사용됨)
         
-    2. 재생목록 생성 API - **Create Playlist**
+    3. 재생목록 생성 API - **Create Playlist**
         - 호출 예시
             
             curl --request POST \
@@ -81,6 +90,27 @@ def createPlaylist(curr_user):
     request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     spotifyToken = request_data["spotifyToken"]
     
+    # 사용자 소유 재생목록 가져오기 API
+    SPOTIFY_GET_PLAYLIST_URL = "https://api.spotify.com/v1/me/playlists"
+    get_playlist_header = { "Authorization": f"Bearer {spotifyToken}" }
+    try:
+        get_playlist_response = requests.get(SPOTIFY_GET_PLAYLIST_URL, headers=get_playlist_header)
+        get_playlist_response.raise_for_status()
+        
+        curr_playlists = get_playlist_response.json().get("items")
+        for item in curr_playlists:
+            name = item.get("name")
+            description = item.get("description")
+            
+            if (name in new_playlists_name):
+                emotion = emotions_mapping[name]
+                if (description == f"뮤지기 - 감정 {emotion}에 맞는 플리"):
+                    return jsonify({"error" : f"spotify에는 있는데 뮤지기 db에는 저장이 안 됨. 재생목록 감정 : {name}"}), 500            
+                
+    except requests.exceptions.HTTPError as e:
+        error_msg = str(e)
+        return jsonify({"error" : f"소유 재생목록 못가져옴: {error_msg}"}), 500
+    
     # 사용자 프로필 가져오기 API
     SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
     profile_header = { "Authorization": f"Bearer {spotifyToken}" }
@@ -91,7 +121,8 @@ def createPlaylist(curr_user):
         spotifyId = get_profile_response.json().get("id") # spotify 고유 id 저장
         
     except requests.exceptions.HTTPError as e:
-        return jsonify({"error" : "사용자 프로필 못 가져왔음"}), 500
+        error_msg = str(e)
+        return jsonify({"error" : f"사용자 프로필 못 가져왔음 {error_msg}"}), 500
     
     
     # 재생목록 생성 API
@@ -102,7 +133,7 @@ def createPlaylist(curr_user):
     }
     new_playlists_ids = {}
     try:
-        for new in new_playlists:
+        for new in new_playlists_name:
             emotion = emotions_mapping.get(new)
             create_data = {
                 "name": f"{emotion}",
