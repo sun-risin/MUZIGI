@@ -110,12 +110,12 @@ def createPlaylist(curr_user):
                 "public": False
             }
             
-        create_response = requests.post(SPOTIFY_CREATE_PLAYLIST_URL,
-                                        json=create_data, headers=create_headers)
-        create_response.raise_for_status()
-        
-        new_id = create_response.json().get("id")
-        new_playlists_ids[emotion] = new_id
+            create_response = requests.post(SPOTIFY_CREATE_PLAYLIST_URL,
+                                            json=create_data, headers=create_headers)
+            create_response.raise_for_status()
+            
+            new_id = create_response.json().get("id")
+            new_playlists_ids[emotion] = new_id
                     
     except requests.exceptions.HTTPError as http_e:
         http_e_msg = str(http_e)
