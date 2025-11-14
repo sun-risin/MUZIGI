@@ -31,8 +31,10 @@ def createPlaylist(curr_user):
         
         for play in playlists:
             data = play.to_dict()
-            if data["emotionName"] in new_playlist:
-                new_playlist.remove(data["emotionName"])
+            emotionName = data["emotionName"]
+            
+            if emotionName in new_playlist:
+                new_playlist.remove(emotionName)
         
         if (len(new_playlist) == 0):
             return jsonify({"error" : "이미 재생목록 다 있다"}), 401
