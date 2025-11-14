@@ -14,12 +14,35 @@ playlistHistory_schema = PlaylistHistorySchema()
 @login_required
 def createPlaylist(curr_user):
     """
-    1-2. 재생목록 생성 여부를 확인한다.
+    1-2. 재생목록 존재 여부를 확인한다.
     1-3.1. 이미 감정 별 재생목록이 있다면 종료된다.
     1-3.2. 재생목록이 없는 게 있다면 새로 생성된다.
     """
-
-    data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
+    if not curr_user:
+        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
+    
+    # 생성 예정 재생목록 카테고리
+    new_playlist = ["happiness", "excited", "aggro", "sorrow", "nervous"]
+    
+    # 재생목록 존재 여부 확인
+    try:
+        playlist_ref = db.collection("Playlist").where("userDocId", "==", curr_user["userDocId"])
+        playlists = playlist_ref.stream()
+        
+        for play in playlists:
+            data = play.to_dict()
+            if data["emotionName"] in new_playlist:
+                new_playlist.remove(data["emotionName"])
+        
+        if (len(new_playlist) == 0):
+            return jsonify({"error" : "이미 재생목록 다 있다"}), 401
+        
+    except Exception as e:
+        return jsonify({"error" : f"오류 발생 : {e}"}), 500
+        
+    request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
+    spotifyToken = request_data["spotifyToken"]
+    
     
     
     return 
