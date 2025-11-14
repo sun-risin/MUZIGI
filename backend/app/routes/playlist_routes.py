@@ -22,7 +22,7 @@ def createPlaylist(curr_user):
     """
     if not curr_user:
         return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
-    
+    userDocId = curr_user.get("userDocId")
     # 생성 예정 재생목록 카테고리
     new_playlists = ["happiness", "excited", "aggro", "sorrow", "nervous"]
     emotions_mapping = {
@@ -34,7 +34,7 @@ def createPlaylist(curr_user):
     
     # 재생목록 존재 여부 확인
     try:
-        playlist_ref = db.collection("Playlist").where("userDocId", "==", curr_user.get("userDocId"))
+        playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
         playlists = playlist_ref.stream()
         
         for play in playlists:
@@ -144,9 +144,12 @@ def createPlaylist(curr_user):
                 return jsonify({ "error": f"유효하지 않은 입력값 : {playli_db_errors}" }), 400
             
             # Firestore - users 컬렉션
-            user_doc = db.collection("users").where("userDocId", "==", curr_user.get("userDocId"))
-            user_doc["playlistIds"].set({
-                f"{emo}" : new_playli_docId
+            user_ref = db.collection("users").document(userDocId).get()
+            if not user_ref.exists: 
+                return jsonify({"message": "유효하지 않은 사용자입니다."}), 401
+            
+            user_ref.update({ # 추가! (수정이긴 한데 어쨌든...)
+                f"playlistIds.{emo}": new_playli_docId
             })
             
     except Exception as e:
