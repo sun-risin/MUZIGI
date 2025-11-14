@@ -32,7 +32,7 @@ def create_app():
         initialize_app(cred)
 
     # --- Blueprint 등록 ---    
-    from app.routes import main_route, auth_routes, chat_routes, forSpotify_routes
+    from app.routes import main_route, auth_routes, chat_routes, forSpotify_routes, playlist_routes
        
     # 테스트 페이지 렌더링
     app.register_blueprint(main_route.main_blp)
@@ -40,10 +40,13 @@ def create_app():
     # auth_routes
     app.register_blueprint(auth_routes.auth_blp)
     
-    #chat_routes
+    # chat_routes
     app.register_blueprint(chat_routes.chat_blp)
     
-    #forSpotify_routes
+    # forSpotify_routes
     app.register_blueprint(forSpotify_routes.track_blp)
+    
+    # playlist_routes
+    app.register_blueprint(playlist_routes.playlist_blp)
     
     return app
