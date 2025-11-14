@@ -42,7 +42,9 @@ def createPlaylist(curr_user):
             --url https://api.spotify.com/v1/me/playlists \
             --header 'Authorization: Bearer {access_token}'        
         
-        ⇒ 반환값 중 items의 name과 description 사용, 감정 이름과 설명이 일치하는 게 있으면 제외
+        ⇒ 반환값 중 items 내 description, id 사용, 설명이 일치하는 게 있으면 DB에도 겹치는 문서가 있는지 확인 후 제외.
+            겹치는 문서가 없다면 spotify에는 있는데 db에는 없는 것이므로 에러
+            TODO - 된다면 이 경우에 에러 나게 하지말고, playlist, users, palylisthistory 컬렉션에 있는 내용을 업뎃하도록 수정
         
     2. 사용자 프로필 get API - **Get Current User's Profile**
         - 호출 예시
