@@ -15,10 +15,6 @@ def create_app():
     # 세션 사용을 위한 Secret Key 설정
     app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
     
-    # 환경 변수에서 값 읽기
-    SPOTIFY_CLIENT_ID = os.getenv("SPOTIFY_CLIENT_ID")
-    SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
-    
     # CORS 허용 위해 프론트엔드 URL - 배포 생각해서 지정하는 식으로 수정함
     FRONTEND_URL = os.getenv("FRONTEND_URL", 'http://127.0.0.1:5173')
     
