@@ -31,6 +31,7 @@ def createPlaylist(curr_user):
         "aggro" : "화남",
         "sorrow" : "슬픔",
         "nervous" : "긴장" }
+    reverse_emotions_mapping = {v: k for k, v in emotions_mapping.items()}
     
     # 재생목록 존재 여부 확인
     try:
@@ -91,21 +92,35 @@ def createPlaylist(curr_user):
     spotifyToken = request_data["spotifyToken"]
     
     # 사용자 소유 재생목록 가져오기 API
+    new_playlists_name = ["happiness", "excited", "aggro", "sorrow", "nervous"]
+    emotions_mapping = {
+        "happiness" : "행복",
+        "excited" : "신남",
+        "aggro" : "화남",
+        "sorrow" : "슬픔",
+        "nervous" : "긴장" }
+    
+    request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
+    spotifyToken = request_data["spotifyToken"]
+    
+    # 사용자 소유 재생목록 가져오기 API
     SPOTIFY_GET_PLAYLIST_URL = "https://api.spotify.com/v1/me/playlists"
     get_playlist_header = { "Authorization": f"Bearer {spotifyToken}" }
+    get_playlist_params = { "limit" : 50 }
     try:
-        get_playlist_response = requests.get(SPOTIFY_GET_PLAYLIST_URL, headers=get_playlist_header)
+        get_playlist_response = requests.get(SPOTIFY_GET_PLAYLIST_URL, headers=get_playlist_header, params=get_playlist_params)
         get_playlist_response.raise_for_status()
         
         curr_playlists = get_playlist_response.json().get("items")
         for item in curr_playlists:
-            name = item.get("name")
-            description = item.get("description")
+            description = item.get("description")  # 뮤지기 관련 플리만 고정 패턴
+            print(description)
             
-            if (name in new_playlists_name):
-                emotion = emotions_mapping[name]
-                if (description == f"뮤지기 - 감정 {emotion}에 맞는 플리"):
-                    return jsonify({"error" : f"spotify에는 있는데 뮤지기 db에는 저장이 안 됨. 재생목록 감정 : {name}"}), 500            
+            # description 패턴 기반 역매핑
+            for eng, kor in emotions_mapping.items():
+                if description == f"뮤지기 - 감정 {kor}에 맞는 플리":
+                    if eng in new_playlists_name:
+                        return jsonify({ "error": f"spotify에는 있는데 뮤지기 db에는 없음. 감정: {kor}" }), 500          
                 
     except requests.exceptions.HTTPError as e:
         error_msg = str(e)
@@ -146,7 +161,8 @@ def createPlaylist(curr_user):
             create_response.raise_for_status()
             
             new_id = create_response.json().get("id")
-            new_playlists_ids[emotion] = new_id
+            emotionName = reverse_emotions_mapping.get(emotion) # 영어로 저장
+            new_playlists_ids[emotionName] = new_id
                     
     except requests.exceptions.HTTPError as http_e:
         http_e_msg = str(http_e)
@@ -163,7 +179,7 @@ def createPlaylist(curr_user):
             # Firestore - Playlist 컬렉션            
             new_playli = db.collection("Playlist").document(new_playlists_ids.get(emo))
             new_data = {
-                "emotionName" : f"{emo}",
+                "emotionName" : f"{emo}", # 영어가 들어감
                 "playlistId":  new_playli.id,
                 "userDocId" : curr_user.get("userDocId")
             }
@@ -187,4 +203,4 @@ def createPlaylist(curr_user):
         error_msg = str(e)
         return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
     
-    return jsonify({"playlistIds" : new_playlists_ids}), 201
+    return jsonify({"playlistIds" : f"{new_playlists_ids}\n{description}"}), 201
