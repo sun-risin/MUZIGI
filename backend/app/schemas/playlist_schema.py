@@ -6,8 +6,5 @@ class PlaylistSchema(Schema):
     userDocId = fields.String()
     
 class PlaylistHistorySchema(Schema):
-    chatId = fields.String()
-    content = fields.String()
-    messageId = fields.String()
-    senderType = fields.Boolean()
-    senderId = fields.String()
+    playlistId = fields.String()
+    tracks = fields.List(fields.Mapping(fields.String()))
