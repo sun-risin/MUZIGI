@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, current_app
 from firebase_admin import firestore
+from app.routes.auth_routes import login_required
 from app.schemas.playlist_schema import PlaylistSchema, PlaylistHistorySchema
 from functools import wraps
 
@@ -10,5 +11,6 @@ playlistHistory_schema = PlaylistHistorySchema()
 
 # 재생목록 생성 API
 @playlist_blp.route("/new", methods=["POST"])
-def createPlaylist():
+@login_required
+def createPlaylist(curr_user):
     return 
