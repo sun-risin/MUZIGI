@@ -42,6 +42,34 @@ def createPlaylist(curr_user):
     except Exception as e:
         return jsonify({"error" : f"오류 발생 : {e}"}), 500
         
+        
+    # 여기서부터 spotify API 사용
+    
+    """
+    1. 사용자 프로필 get API - **Get Current User's Profile**
+        - 호출 예시
+            
+            curl --request GET \
+            --url https://api.spotify.com/v1/me \
+            --header 'Authorization: Bearer {access_token}'
+            
+        
+        ⇒ 반환값 중 id 사용 (spotify 고유 사용자 id string임, 위 재생목록 API에 사용됨)
+        
+    2. 재생목록 생성 API - **Create Playlist**
+        - 호출 예시
+            
+            curl --request POST \
+            --url [https://api.spotify.com/v1/users/{user_id}/playlists](https://api.spotify.com/v1/users/smedjan/playlists) \
+            --header 'Authorization: Bearer {access_token}' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "name": "New Playlist",
+            "description": "New playlist description",
+            "public": false
+            }'
+    """
+    
     request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     spotifyToken = request_data["spotifyToken"]
     
