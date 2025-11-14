@@ -48,7 +48,7 @@ def signup():
         "nickname" : nickname,
         "userDocId" : new_user_docId, # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
         "chatIds": [first_chatId],        # 리스트 형태로 저장됨
-        "playlistIds" : []  # TODO - 지금은 재생목록 생성없어서 비어있음, 나중에 4개 채워야 함.
+        "playlistIds" : {} # 어차피 나중에 생성될 때 수정될 거임
     })
 
     return jsonify({"message": "회원가입 성공"}), 201

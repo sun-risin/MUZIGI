@@ -11,12 +11,19 @@
         #status { font-weight: bold; }
         .success { color: #1DB954; }
         .error { color: #d93025; }
+        button { margin-top: 15px; padding: 10px 20px; background: #333; color: white; border: none; border-radius: 8px; cursor: pointer; }
     </style>
 </head>
 <body>
+
+    <form id="loginForm">
+        <h3>뮤지기 로그인</h3>
+        <input type="text" id="login-userId" placeholder="아이디" required><br>
+        <input type="password" id="login-password" placeholder="비밀번호" required><br>
+        <button type="submit">로그인</button>
+    </form>
+
     <h1>Spotify 인증 흐름 테스트</h1>
-    <p>이 페이지는 Flask 서버의 인증 API가 잘 작동하는지 확인하기 위한 테스트 클라이언트입니다.</p>
-    
     <hr>
 
     <h2>1. 로그인 상태 확인</h2>
@@ -25,43 +32,99 @@
 
     <hr>
 
-    <h2>2. 로그인 시도</h2>
-    <p>아래 링크를 클릭하면 Flask 서버의 <code>/auth/login</code> API를 호출합니다.</p>
+    <h2>2. Spotify 로그인</h2>
     <a href="/api/spotify/auth/login">Spotify로 로그인하기</a>
-    
+
+    <hr>
+
+    <h2>3. 감정별 재생목록 생성</h2>
+    <p>아래 버튼을 누르면 <code>/api/playlist/new</code> API를 호출하여 없던 플리를 생성합니다.</p>
+    <button id="createPlaylistBtn">감정별 재생목록 생성</button>
+
+    <pre id="playlistResult"></pre>
+
     <script>
-        // 페이지가 로드되었을 때 자동으로 로그인 상태를 확인합니다.
+        let userToken = null; // 로그인 성공 시 저장할 토큰
+        let spotifyAccessToken = null; // Spotify 토큰 저장용
+
+        // 페이지 로드 시 자동 실행
         window.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
         });
 
+        // 뮤지기 로그인
+        document.getElementById("loginForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const user = {
+                userId: document.getElementById("login-userId").value,
+                password: document.getElementById("login-password").value,
+            };
+            const res = await fetch("/api/auth/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(user)
+            });
+            const data = await res.json();
+            // 로그인 성공 시 토큰 저장
+            if (data.userToken) {
+                userToken = data.userToken;
+                localStorage.setItem("userToken", userToken);
+                alert("뮤지기 로그인 완료!");
+            }
+        });
+
+
+        // Spotify 세션 토큰 불러오기
         async function checkLoginStatus() {
             const statusEl = document.getElementById('status');
             
             try {
-                // Flask 서버의 /auth/token API 호출
-                // credentials: 'include' 옵션이 세션 쿠키를 함께 보내는 핵심입니다.
-                // 하지만 지금은 같은 도메인(127.0.0.1:5000)에서 서빙되므로
-                // 이 옵션이 없어도 쿠키가 자동으로 전송됩니다.
                 const response = await fetch('/api/spotify/auth/token');
                 const data = await response.json();
 
                 if (response.ok && data.access_token) {
-                    // 성공: 세션에서 토큰을 가져옴
-                    statusEl.textContent = "로그인 성공! (세션에서 토큰을 가져왔습니다.)\n\n";
-                    statusEl.textContent += `Access Token (일부): ${data.access_token.substring(0, 20)}...`;
+                    spotifyAccessToken = data.access_token;  // 🔥 저장
+                    statusEl.textContent = "Spotify 로그인됨! 토큰 확인 완료.";
                     statusEl.className = 'success';
                 } else {
-                    // 실패: 세션에 토큰이 없음
-                    statusEl.textContent = "로그인되지 않았습니다. (세션에 토큰이 없습니다.)\n\n";
-                    statusEl.textContent += `(서버 응답: ${JSON.stringify(data)})`;
+                    statusEl.textContent = "Spotify 로그인되지 않음.";
                     statusEl.className = 'error';
                 }
             } catch (error) {
-                statusEl.textContent = `상태 확인 중 오류 발생: ${error.message}`;
+                statusEl.textContent = `상태 확인 중 오류: ${error.message}`;
                 statusEl.className = 'error';
             }
         }
+
+
+        // 🔥 재생목록 생성 버튼 기능 추가
+        document.getElementById("createPlaylistBtn").addEventListener("click", async () => {
+            const resultEl = document.getElementById("playlistResult");
+
+            if (!spotifyAccessToken) {
+                resultEl.textContent = "Spotify 토큰 없음! 먼저 Spotify 로그인하세요.";
+                resultEl.className = "error";
+                return;
+            }
+
+            try {
+                const response = await fetch("/api/playlist/new", {
+                    method: "POST",
+                    headers: {
+                        "Authorization" : userToken,
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ spotifyToken: spotifyAccessToken })
+                });
+
+                const data = await response.json();
+                resultEl.textContent = JSON.stringify(data, null, 2);
+
+            } catch (err) {
+                resultEl.textContent = "에러: " + err.message;
+            }
+        });
     </script>
+
 </body>
 </html>
