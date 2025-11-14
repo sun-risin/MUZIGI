@@ -100,7 +100,6 @@ def createPlaylist(curr_user):
         "Authorization": f"Bearer {spotifyToken}",
         "Content-Type": "application/json"
     }
-    create_params = { "user_id" : spotifyId }
     new_playlists_ids = {}
     try:
         for new in new_playlists:
@@ -112,8 +111,7 @@ def createPlaylist(curr_user):
             }
             
         create_response = requests.post(SPOTIFY_CREATE_PLAYLIST_URL,
-                                        json=create_data, headers=create_headers,
-                                        params=create_params)
+                                        json=create_data, headers=create_headers)
         create_response.raise_for_status()
         
         new_id = create_response.json().get("id")
