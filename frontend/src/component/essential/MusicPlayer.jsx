@@ -3,11 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlay, faPause, faSpinner, faHeart } from '@fortawesome/free-solid-svg-icons';
 import './MusicPlayer.css';
 
-function MusicPlayer({ music, isPlayerReady, deviceId }) {
+function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, playlistTracks }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLiked, setIsLiked] = useState(false); // 좋아요 관리
   const previewTimerRef = useRef(null); // 타이머 ID 저장을 위한 ref
-
+  const isLiked = playlistTracks.some(item=>item.trackId===music.trackId);
   //1> 타이머 즉시 취소
   const handlePlayPause = async () => {
      if (previewTimerRef.current) {
@@ -70,24 +69,21 @@ function MusicPlayer({ music, isPlayerReady, deviceId }) {
          console.error("Spotify 재생 API 호출 실패:", error);
          setIsPlaying(false); // 실패 시 '재생' 아이콘으로 되돌림
        }
- }
+  }
  };
 
 //좋아요 버튼 클릭 로직
 const handleLike = () =>{
-  setIsLiked(!isLiked);
+  onToggleLike({...music, emotion: emotion});
   if (!isLiked) {
-       console.log(`${music.title} - 좋아요! 재생목록에 추가합니다.`);
-       // TODO: MainPage의 재생목록 state를 업데이트하는 함수 호출
-     } else {
-       console.log(`${music.title} - 좋아요 취소. 재생목록에서 제거합니다.`);
-       // TODO: MainPage의 재생목록 state를 업데이트하는 함수 호출
-     }
+       console.log(`${music.title} - 좋아요! (${emotion})`);
+      } else {
+        console.log(`${music.title} - 좋아요 취소! (${emotion})`);
+      }
 }
 
 const handleLogin = () => {
   console.log("로그인 시도... 기존 토큰(spotifyAccessToken)을 삭제합니다.");
-  // (구형 토큰 문제를 해결하기 위한 안전장치)
   localStorage.removeItem('spotifyAccessToken'); 
   window.location.href = 'http://127.0.0.1:5000/api/spotify/auth/login';
 };
