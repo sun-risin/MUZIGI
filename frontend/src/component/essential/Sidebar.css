@@ -81,42 +81,88 @@
     margin-right: 8px;
 }
 
+/* 💡 [수정] ul, li 스타일을 모두 제거하고 div 구조에 맞게 변경 */
 .scrollable-list {
     max-height: 150px; /* 스크롤 높이 제한 */
     overflow-y: auto; /* 내용이 넘치면 스크롤 */
-    background-color: #eDEDED; /* 목록 배경색 */
+    background-color: #EDEDED; /* 목록 배경색 */
     border-radius: 5px;
     padding: 10px;
 }
 
-.scrollable-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.scrollable-list li {
-    padding: 8px 0;
-    color: #555;/*글씨 색*/
-    border-bottom: 1px solid #ddd;
-}
-
-.scrollable-list li:last-child {
-    border-bottom: none;
-}
-
+/* 스크롤바 스타일 (기존 코드 유지) */
 .scrollable-list::-webkit-scrollbar {
     width: 8px;
 }
-
 .scrollable-list::-webkit-scrollbar-thumb {
     background-color: #ccc;
     border-radius: 4px;
 }
-
 .scrollable-list::-webkit-scrollbar-track {
     background-color: #f0f0f0;
 }
+
+/* --- (이하 "좋아요" 목록을 위한 새 스타일) --- */
+
+/* 목록이 비어있을 때 */
+.playlist-item-empty {
+    font-size: 0.85rem;
+    color: #888;
+    padding: 5px;
+}
+
+/* 감정 카테고리 그룹 */
+.playlist-category {
+    margin-bottom: 15px;
+}
+.playlist-category:last-child {
+    margin-bottom: 0;
+}
+
+/* 감정 카테고리 제목 (예: "행복") */
+.playlist-emotion-title {
+    font-size: 0.9rem;
+    font-weight: bold;
+    color: #333;
+    margin: 0 0 8px 0;
+}
+
+/* 개별 노래 아이템 */
+.playlist-item {
+    padding: 4px 0 4px 10px; /* 제목/가수가 보이도록 왼쪽 여백 */
+    border-radius: 3px;
+    transition: background-color 0.2s;
+}
+
+.playlist-item:hover {
+    background-color: #ddd; /* 호버 색상 */
+}
+
+.playlist-item-title {
+    font-size: 0.9rem;
+    color: #444;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.playlist-item-artist {
+    font-size: 0.8rem;
+    color: #777;
+    margin: 0;
+}
+
+/* 채팅 목록 (ul/li 대신 div 스타일 사용) */
+.chatlist-section .scrollable-list div {
+    padding: 8px 0;
+    color: #555;
+    border-bottom: 1px solid #ddd;
+}
+.chatlist-section .scrollable-list div:last-child {
+  border-bottom: none;
+}
+
 
 /* 로그아웃 버튼 */
 .sidebar-footer {
@@ -145,5 +191,11 @@
 
 .logout-icon {
     margin-right: 8px;
-    font-size: 1.2rem;
+   font-size: 1.2rem;
+}
+.playlist-item-empty-category {
+ font-size: 0.8rem;
+ color: #999;
+ font-style: italic;
+ padding-left: 10px;
 }

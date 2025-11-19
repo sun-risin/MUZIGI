@@ -3,7 +3,7 @@ import './Chat.css';
 import Muzigi from '../../assets/Muzigi.png';
 import MusicPlayer from './MusicPlayer';
 
-function Chat({ selectedChatId, messages, setMessages }) {
+function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTracks }) {
   const [nickname, setNickname] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const chatListRef = useRef(null);//스크롤할 ref 생성 
@@ -11,72 +11,133 @@ function Chat({ selectedChatId, messages, setMessages }) {
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
 
-  useEffect(() => {
+  //1> 스포티파이 sdk 초기화
+ useEffect(() => {
+    const delay = 2500;
+    // 2. "재생목록 생성" API 호출 함수 
+    const createPlaylistsIfNeeded = async (spotifyToken) => {
+      const muzigiToken = localStorage.getItem('accessToken');
+      console.log("--- API 호출 직전 토큰 확인 ---");
+      console.log("Muzigi 토큰 (accessToken):", muzigiToken);
+      console.log("Spotify 토큰 (spotifyAccessToken):", spotifyToken);
 
-    window.onSpotifyWebPlaybackSDKReady = () => {
-      console.log("Spotify SDK Ready 콜백 실행됨!");
-      const token = localStorage.getItem('spotifyAccessToken');
-      if (!token) {
-        console.warn("Spotify SDK: 토큰이 없어 플레이어를 초기화할 수 없습니다.");
-        return; 
-      }
+      if (!muzigiToken || !spotifyToken){
+        console.error("Muzigi 또는 Spotify 토큰이 null입니다! API 호출을 중단합니다.");
+        return;
+      } 
 
-      console.log("토큰 확인, Spotify Player 초기화 시작...");
-      // ⭐️ 중요: 기존 플레이어가 있다면 정리하고 새로 만듭니다.
-      if (window.SpotifyPlayerInstance) {
-        window.SpotifyPlayerInstance.disconnect();
-      }
-      
-      const spotifyPlayer = new window.Spotify.Player({
-        name: 'Muzigi Web Player',
-        getOAuthToken: (cb) => { cb(token); },
-        volume: 0.5
-      });
+      try {
+        console.log("감정별 재생목록 생성을 시도합니다...");
+        const response = await fetch('http://localhost:5000/api/playlist/new', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `${muzigiToken}`
+          },
+          body: JSON.stringify({ 'spotifyToken': spotifyToken })
+        });
+        
+        if (response.status === 201 || response.status === 200) {
+          console.log("재생목록이 성공적으로 준비되었습니다.");
+        } else {
+          const errorData = await response.json();
+          console.error("재생목록 생성 실패: ", errorData);
+        }
+      } catch (error) {
+        console.error("재생목록 생성 API 호출 실패:", error);
+      }
+    };
 
-      spotifyPlayer.addListener('ready', ({ device_id }) => {
-        console.log('Spotify 플레이어 준비 완료, Device ID:', device_id);
-        setIsPlayerReady(true);
-        setDeviceId(device_id);
-        // ⭐️ 플레이어 인스턴스를 전역에 저장
-        window.SpotifyPlayerInstance = spotifyPlayer;
-      });
+    // 3. SDK 콜백을 *즉시* 정의
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      console.log("Spotify SDK Ready 콜백 실행됨!");
+      
+      // 4. 콜백 *내용물*의 실행을 "delay"만큼 (항상 2.5초) 지연
+      setTimeout(() => {
+        console.log(`딜레이(${delay}ms) 종료. SDK 초기화 시작.`);
+        const token = localStorage.getItem('spotifyAccessToken');
+        if (!token) {
+          console.warn("Spotify SDK: 토큰이 없어 플레이어를 초기화할 수 없습니다.");
+          return; 
+        }
 
-      spotifyPlayer.addListener('authentication_error', ({ message }) => {
-        console.error('Spotify 인증 실패 (토큰 만료 가능성):', message);
-      });
+        // 💡 [추가] 5. SDK를 초기화하기 *직전에* "재생목록 생성" 함수를 호출합니다.
+        createPlaylistsIfNeeded(token); 
+        
+        console.log("토큰 확인, Spotify Player 초기화 시작...");
+        if (window.SpotifyPlayerInstance) {
+          window.SpotifyPlayerInstance.disconnect();
+        }
+        
+        const spotifyPlayer = new window.Spotify.Player({
+          name: 'Muzigi Web Player',
+          getOAuthToken: (cb) => { cb(token); },
+          volume: 0.5
+        });
 
-      spotifyPlayer.connect().then(success => {
-        if (success) console.log("Spotify 플레이어 성공적으로 연결됨");
-      });
-    };
-    
-    // 2. 💡 [수정됨] 스크립트 태그가 이미 DOM에 있는지 ID로 확인합니다.
-    const scriptId = 'spotify-playback-sdk';
-    if (document.getElementById(scriptId)) {
-      // 스크립트 태그가 이미 있다면,
-      // (아마도 StrictMode로 인해) 콜백만 다시 실행해줍니다.
-      if (window.Spotify) {
-         console.log("Spotify SDK가 이미 로드됨. 콜백을 재실행합니다.");
-         window.onSpotifyWebPlaybackSDKReady();
-      }
-    } else {
-      // 스크립트 태그가 없다면 새로 생성합니다.
-      console.log("Spotify SDK 스크립트 로딩 시작...");
-      const script = document.createElement('script');
-      script.id = scriptId; // 👈 ID를 부여합니다.
-      script.src = 'https://api.spotify.com/v1/me/player/play3...';
-      script.async = true;
-      document.body.appendChild(script);
-    }
+        spotifyPlayer.addListener('ready', ({ device_id }) => {
+         console.log('Spotify 플레이어 준비 완료, Device ID:', device_id);
+          setIsPlayerReady(true);
+          setDeviceId(device_id);
+          window.SpotifyPlayerInstance = spotifyPlayer;
 
-    // 클린업 (컴포넌트가 사라질 때)
-    return () => {
-      if (window.SpotifyPlayerInstance) {
-        window.SpotifyPlayerInstance.disconnect();
-        console.log("Spotify 플레이어 연결 해제됨.");
-      }
-    };
-  }, []); // [] : Chat 컴포넌트 마운트 시 *단 한 번* 실행 (또는 StrictMode에서 두 번)
+          const activateDevice = async () => {
+            try {
+              const res = await fetch("https://api.spotify.com/v1/me/player", {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  device_ids: [device_id],
+                  play: false, // 재생은 하지 않음
+                }),
+              });
+
+              if (!res.ok) {
+                console.error("디바이스 활성화 실패", await res.json());
+              } else {
+                console.log("🎧 Spotify 디바이스 활성화 성공");
+              }
+            } catch (err) {
+              console.error("디바이스 활성화 오류:", err);
+            }
+          };
+          activateDevice();
+         });
+
+        spotifyPlayer.addListener('authentication_error', ({ message }) => {
+          console.error('Spotify 인증 실패 (토큰 만료 가능성):', message);
+        });
+        spotifyPlayer.connect().then(success => {
+          if (success) console.log("Spotify 플레이어 성공적으로 연결됨");
+        });
+      }, delay);
+    }; 
+
+    const scriptId = 'spotify-playback-sdk';
+    if (document.getElementById(scriptId)) {
+      if (window.Spotify && window.onSpotifyWebPlaybackSDKReady) {
+         console.log("Spotify SDK가 이미 로드됨. 콜백을 재실행합니다.");
+         window.onSpotifyWebPlaybackSDKReady();
+      }
+    } else {
+      const script = document.createElement('script');
+      script.id = scriptId;
+      script.src = 'https://sdk.scdn.co/spotify-player.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+
+    // 클린업 로직
+    return () => {
+      if (window.SpotifyPlayerInstance) {
+        window.SpotifyPlayerInstance.disconnect();
+        console.log("Spotify 플레이어 연결 해제됨.");
+      }
+    };
+  }, []); // [] : Chat 컴포넌트 마운트 시 *단 한 번* 실행
 
   // selectedChatId가 바뀔 때마다 채팅 기록 불러오기
   useEffect(() => {
@@ -124,7 +185,6 @@ function Chat({ selectedChatId, messages, setMessages }) {
        // 첫 로드인지, 스크롤이 현재 맨 아래에 있는지 확인
        const isFirstLoad = isInitialLoad.current;
        const isScrolledToBottom = container.scrollHeight - container.scrollTop - container.clientHeight <= 30;
-       // 렌더링이 확실히 끝난 후(setTimeout 0) 스크롤을 실행
        setTimeout(() => {
          // (Case 1) 첫 로드인 경우 (반드시 실행)
          if (isFirstLoad && messages.length > 0) {
@@ -165,14 +225,17 @@ function Chat({ selectedChatId, messages, setMessages }) {
              <div key={index} className="chat-bubble left">
                <img src={Muzigi} alt="봇 프로필" className="bot-profile-in-chat" />
                <div className="message-content">
-                 <p>{msg.content}</p> {/* 멘트 텍스트 */}
+                 <p>{msg.content}</p>
                  <div className="music-list-container">
                    {msg.recommendTracks.map((track, i)=>(
                      <MusicPlayer 
                        key={i}
                        music={track}
                        isPlayerReady={isPlayerReady}
-                       deviceId={deviceId}/>
+                       deviceId={deviceId}
+                       playlistTracks={playlistTracks}
+                       onToggleLike={onToggleLike}
+                       emotion={msg.emotion}/>
                      ))}
                  </div>
                 </div>
