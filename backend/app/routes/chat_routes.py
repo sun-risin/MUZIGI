@@ -81,7 +81,7 @@ def emotion_empathy(emotion_docData):
     
 # --- 메시지 저장 모듈 ---
 # 뮤지기 버블 저장
-def MUZIGI_save_message(chatId, empathy, recommend):
+def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
     ment_recommend = ""
     for i in range(len(recommend)):
         reco = recommend[i]
@@ -95,6 +95,7 @@ def MUZIGI_save_message(chatId, empathy, recommend):
     new_message.set({
         "chatId":chatId,
         "messageId":new_message_docId,
+        "emotionName" : emotion[emotionName],
         "content": content,
         "senderType": False,
         "senderId": "MUZIGI",
@@ -119,6 +120,7 @@ def user_save_message(userDocId, chatId, emotionName):
     new_message.set({
         "chatId":chatId,
         "messageId":new_message_docId,
+        "emotionName" : emotion[emotionName],
         "content": content,
         "senderType": True,
         "senderId": userDocId,
@@ -232,7 +234,7 @@ def messages(curr_user):
         return jsonify({"message": f'{recommend_tracks}'}), 500
     
     try:
-        muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
+        muzigi_content = MUZIGI_save_message(chat_list[0], emotionName, muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
     except:
         return jsonify({"message": "뮤지기 메시지 저장 오류 발생"}), 500
     
