@@ -210,3 +210,30 @@ def createPlaylist(curr_user):
         return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
     
     return jsonify({"playlistIds" : new_playlists_ids}), 201
+
+# 선호 여부 기록 -> 재생목록 내 음악 추가 API
+@playlist_blp.route("/<emotionName>/add", methods=["POST"])
+@login_required
+def addTrackToPlaylist(curr_user):
+    """
+    1-2. 재생목록 존재 여부를 확인한다.
+    1-3.1. 재생목록이 존재하지 않으면 생성 API를 부르고 마저 진행된다.
+    1-3.2. 재생목록이 있다면 해당하는 감정 재생목록에 저장된다.
+           (spotify, firestore 모두 반영)
+    """
+    
+    
+    """
+    사용할 Spotify API - Add Items to Playlist
+    - 호출 예시
+        curl --request POST \
+        --url [https://api.spotify.com/v1/playlists/{playlist_id}/tracks] \
+        --header 'Authorization: Bearer {access_token}' \
+        --header 'Content-Type: application/json' \
+        --data '{
+            "uris": ["spotify:track:{trackId}"], - 추가할 음악
+            "position": 0 - 추가할 위치
+        }'
+        => 반환값: snapshot_id 인데 현재 재생목록의 버전값이래 다른 요청 시 쓸 수 있다니 참고
+    """
+    return 
