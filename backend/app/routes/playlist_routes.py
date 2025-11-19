@@ -10,32 +10,12 @@ db = firestore.client()
 playlist_schema = PlaylistSchema()
 playlistHistory_schema = PlaylistHistorySchema()
 
-
-# 재생목록 생성 API
-@playlist_blp.route("/new", methods=["POST"])
-@login_required
-def createPlaylist(curr_user):
-    """
-    1-2. 재생목록 존재 여부를 확인한다.
-    1-3.1. 이미 감정 별 재생목록이 있다면 종료된다.
-    1-3.2. 재생목록이 없는 게 있다면 새로 생성된다.
-    """
-    if not curr_user:
-        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
-    userDocId = curr_user.get("userDocId")
+# --- 재생목록 존재 여부 확인 함수들
+# spotify에서 재생목록 존재 여부 확인 함수. 반환 형태: JSON
+def checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken):
     
-    # 생성 예정 재생목록 카테고리
-    new_playlists_name = ["happiness", "excited", "aggro", "sorrow", "nervous"]
-    emotions_mapping = {
-        "happiness" : "행복",
-        "excited" : "신남",
-        "aggro" : "화남",
-        "sorrow" : "슬픔",
-        "nervous" : "긴장" }
-
-    # --- 여기서부터 spotify API 사용
     """
-    1. 가진 재생목록 가져오기 API - **Get Current User's Playlists**
+    사용 Sptofiy API - **Get Current User's Playlists**
         - 호출 예시
             
             curl --request GET \
@@ -45,35 +25,7 @@ def createPlaylist(curr_user):
         ⇒ 반환값 중 items 내 description, id 사용, 설명이 일치하는 게 있으면 DB에도 겹치는 문서가 있는지 확인 후 제외.
             겹치는 문서가 없다면 spotify에는 있는데 db에는 없는 것이므로 에러
             TODO - 된다면 이 경우에 에러 나게 하지말고, playlist, users, palylisthistory 컬렉션에 있는 내용을 업뎃하도록 수정
-        
-    2. 사용자 프로필 get API - **Get Current User's Profile**
-        - 호출 예시
-            
-            curl --request GET \
-            --url https://api.spotify.com/v1/me \
-            --header 'Authorization: Bearer {access_token}'
-            
-        ⇒ 반환값 중 id 사용 (spotify 고유 사용자 id string임, 재생목록 생성 API에 사용됨)
-        
-    3. 재생목록 생성 API - **Create Playlist**
-        - 호출 예시
-            
-            curl --request POST \
-            --url [https://api.spotify.com/v1/users/{user_id}/playlists](https://api.spotify.com/v1/users/smedjan/playlists) \
-            --header 'Authorization: Bearer {access_token}' \
-            --header 'Content-Type: application/json' \
-            --data '{
-            "name": "New Playlist",
-            "description": "New playlist description",
-            "public": false
-            }'
-        ⇒ 반환값 중 id 저장 (spotify에 생성한 재생목록 고유 id string)
     """
-    
-    request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
-    spotifyToken = request_data["spotifyToken"]
-    
-    # 사용자 소유 재생목록 가져오기 API
     SPOTIFY_GET_PLAYLIST_URL = "https://api.spotify.com/v1/me/playlists"
     get_playlist_header = { "Authorization": f"Bearer {spotifyToken}" }
     get_playlist_params = { "limit" : 50 }
@@ -107,6 +59,86 @@ def createPlaylist(curr_user):
         error_msg = str(e)
         return jsonify({"error" : f"소유 재생목록 못가져옴: {error_msg}"}), 500
     
+# DB에서 재생목록 존재 여부 확인 - 어플에서 지우고 db 업뎃 안됐을 수 있음.
+# 반환 형태: JSON
+def checkPlaylist_DB(new_playlists_name, userDocId):
+    try:
+        playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
+        playlists = playlist_ref.stream()
+        
+        for play in playlists:
+            data = play.to_dict()
+            emotionName = data["emotionName"]
+            playlistDocId = data["playlistId"]
+
+            if emotionName in new_playlists_name:
+                # PlaylistHistory 컬렉션에서 playlistId가 같은 문서 삭제
+                history_ref = db.collection("PlaylistHistory").where("playlistId", "==", playlistDocId)
+                history_docs = history_ref.stream()
+                for hist in history_docs:
+                    hist.reference.delete()
+
+                # Playlist 컬렉션의 문서 삭제
+                play.reference.delete()
+        
+    except Exception as e:
+        return jsonify({"error" : f"오류 발생 : {e}"}), 500
+    
+
+# --- API들
+# 재생목록 생성 API
+@playlist_blp.route("/new", methods=["POST"])
+@login_required
+def createPlaylist(curr_user):
+    """
+    1-2. 재생목록 존재 여부를 확인한다.
+    1-3.1. 이미 감정 별 재생목록이 있다면 종료된다.
+    1-3.2. 재생목록이 없는 게 있다면 새로 생성된다.
+    """
+    if not curr_user:
+        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
+    userDocId = curr_user.get("userDocId")
+    
+    new_playlists_name = ["happiness", "excited", "aggro", "sorrow", "nervous"] # 생성 예정 재생목록 카테고리
+    emotions_mapping = {
+        "happiness" : "행복",
+        "excited" : "신남",
+        "aggro" : "화남",
+        "sorrow" : "슬픔",
+        "nervous" : "긴장" } # 감정값 영어(key) 한글(value) 딕셔너리
+
+    # --- 여기서부터 spotify API 사용
+    """
+    1. 사용자 프로필 get API - **Get Current User's Profile**
+        - 호출 예시
+            
+            curl --request GET \
+            --url https://api.spotify.com/v1/me \
+            --header 'Authorization: Bearer {access_token}'
+            
+        ⇒ 반환값 중 id 사용 (spotify 고유 사용자 id string임, 재생목록 생성 API에 사용됨)
+        
+    2. 재생목록 생성 API - **Create Playlist**
+        - 호출 예시
+            
+            curl --request POST \
+            --url [https://api.spotify.com/v1/users/{user_id}/playlists](https://api.spotify.com/v1/users/smedjan/playlists) \
+            --header 'Authorization: Bearer {access_token}' \
+            --header 'Content-Type: application/json' \
+            --data '{
+            "name": "New Playlist",
+            "description": "New playlist description",
+            "public": false
+            }'
+        ⇒ 반환값 중 id 저장 (spotify에 생성한 재생목록 고유 id string)
+    """
+    
+    request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
+    spotifyToken = request_data["spotifyToken"]    
+    
+    spoti_check = checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken) # spotify에서 재생목록 존재 여부 확인
+    if type(spoti_check) is tuple: # 왜인지 모르겠는데 print 찍어보니 return jsonify({})~의 type이 tuple로 나옴
+        return spoti_check
     
     # 사용자 프로필 가져오기 API
     SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
@@ -153,30 +185,11 @@ def createPlaylist(curr_user):
         return jsonify({"error" : f"뮤지기쪽의 문제로 재생목록 생성 실패 : {error_msg}"}), 500
     
     
-    # --- 여기서부터 DB 조작
-    # 재생목록 존재 여부 확인 - 어플에서 지우고 db 업뎃 안됐을 수 있음
-    try:
-        playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
-        playlists = playlist_ref.stream()
-        
-        for play in playlists:
-            data = play.to_dict()
-            emotionName = data["emotionName"]
-            playlistDocId = data["playlistId"]
-
-            if emotionName in new_playlists_name:
-                # PlaylistHistory 컬렉션에서 playlistId가 같은 문서 삭제
-                history_ref = db.collection("PlaylistHistory").where("playlistId", "==", playlistDocId)
-                history_docs = history_ref.stream()
-                for hist in history_docs:
-                    hist.reference.delete()
-
-                # Playlist 컬렉션의 문서 삭제
-                play.reference.delete()
-        
-    except Exception as e:
-        return jsonify({"error" : f"오류 발생 : {e}"}), 500
+    # --- 여기서부터 DB 조작    
     
+    db_check = checkPlaylist_DB(new_playlists_name, userDocId) # 생성하고 나서 DB에 잘 저장됐는지 존재여부 확인
+    if type(db_check) is tuple:
+        return db_check
     
     # 생성된 재생목록 db에 저장하기
     try:
@@ -215,6 +228,10 @@ def createPlaylist(curr_user):
 @playlist_blp.route("/<emotionName>/add", methods=["POST"])
 @login_required
 def addTrackToPlaylist(curr_user):
+    if not curr_user:
+        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
+    userDocId = curr_user.get("userDocId")
+    
     """
     1-2. 재생목록 존재 여부를 확인한다.
     1-3.1. 재생목록이 존재하지 않으면 생성 API를 부르고 마저 진행된다.
