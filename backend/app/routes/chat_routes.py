@@ -268,6 +268,7 @@ def chat_show_messages(curr_user, chatId):
                 "senderId": data.get("senderId"),
                 "content": data.get("content"),
                 "recommendTracks" : data.get("recommendTracks"),
+                "emotionName" : data.get("emotionName"),
                 "created_at": data.get("created_at")
             })
         
