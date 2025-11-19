@@ -108,9 +108,9 @@ def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
 # 사용자 버블 저장
 def user_save_message(userDocId, chatId, emotionName):
     ments = [
-        f"제 감정은 지금 \"{emotionName}\"이에요.\n 이 감정에 맞는 음악을 추천해 주세요!",
-        f"\"{emotionName}\"라는 감정에 맞는 음악이 필요해요.",
-        f"\"{emotionName}\"의 감정이 느껴질 때 듣기 좋은 음악이 있을까요?"
+        f"제 감정은 지금 \"{emotionName}\"이에요.\n지금 들으면 좋을 음악을 추천해 주세요!",
+        f"{emotionName}이라는 감정에 맞는 음악이 필요해요.",
+        f"{emotionName}의 감정이 느껴질 때 듣기 좋은 음악이 있을까요?"
     ]
     content = random.choice(ments)
       
