@@ -11,7 +11,7 @@ playlist_schema = PlaylistSchema()
 playlistHistory_schema = PlaylistHistorySchema()
 
 # --- 재생목록 존재 여부 확인 함수들
-# spotify에서 재생목록 존재 여부 확인 함수. 반환 형태: JSON
+# spotify에서 재생목록 존재 여부 확인 함수. 오류 시 반환 형태: JSON (type: tuple)
 def checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken):
     
     """
@@ -60,7 +60,7 @@ def checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken):
         return jsonify({"error" : f"소유 재생목록 못가져옴: {error_msg}"}), 500
     
 # DB에서 재생목록 존재 여부 확인 - 어플에서 지우고 db 업뎃 안됐을 수 있음.
-# 반환 형태: JSON
+# 오류 시 반환 형태: JSON (type: tuple)
 def checkPlaylist_DB(new_playlists_name, userDocId):
     try:
         playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
