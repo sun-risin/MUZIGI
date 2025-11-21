@@ -380,7 +380,7 @@ def addTrackToPlaylist(curr_user, emotionName):
             return jsonify({"error" : f"spotify 사용자 프로필 가져오기 오류: {http_error_msg}"}), 500
         
         try:
-            created_play = spotify_createPlaylist(spotifyId, spotifyToken, emotionName)
+            created_play = spotify_createPlaylist(spotifyToken, spotifyId, [emotionName])
         except requests.exceptions.HTTPError as http_e:
             http_error_msg = str(http_e)
             return jsonify({"error" : f"spotify 재생목록 생성 오류: {http_error_msg}"}), 500
