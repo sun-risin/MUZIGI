@@ -411,3 +411,9 @@ def addTrackToPlaylist(curr_user, emotionName):
     
     
     return jsonify({"message" : "음악 추가 성공!"}), 200
+
+
+@playlist_blp.route("/<emotionName>/show", methods=["GET"])
+@login_required
+def showPlaylistHistory(curr_user, emotionName):
+    return jsonify({""})
