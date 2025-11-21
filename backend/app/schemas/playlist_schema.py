@@ -1,12 +1,23 @@
 from marshmallow import Schema, fields
 
+class TrackInfoSchema(Schema):
+    title = fields.String(required=True)
+    artist = fields.String(required=True)
+    trackId = fields.String(required=True)
+    
 class PlaylistSchema(Schema):
     emotionName = fields.String(required=True)
     playlistId = fields.String(required=True)
     userDocId = fields.String(required=True)
+    tracks = fields.Dict(
+        keys=fields.String(),       # position (문자열)
+        values=fields.Nested(TrackInfoSchema)    # trackInfo 객체
+    )
     
-class PlaylistHistorySchema(Schema):
-    historyDocId = fields.String(required=True)
-    playlistId = fields.String(required=True)
-    tracks = fields.List(fields.Mapping(fields.String()), required=True)
-    # tracks -> 딕셔너리 배열. 각 인덱스에 가수, 제목, 음악 id 정보가 있다
+# class PlaylistHistorySchema(Schema):
+#     historyDocId = fields.String(required=True)
+#     playlistId = fields.String(required=True)
+#     tracks = fields.Dict(
+#         keys=fields.String(),       # position (문자열)
+#         values=fields.Nested(TrackInfoSchema)    # trackInfo 객체
+#     )
