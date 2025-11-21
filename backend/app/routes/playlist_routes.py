@@ -318,8 +318,7 @@ def createPlaylist(curr_user):
         try: # 지워야 하는 정보 지우기
             for playlistDocId in delete_db_play.values():
                 # Playlist 컬렉션의 문서 삭제
-                playlist_doc = db.collection("Playlist").document(playlistDocId)
-                playlist_doc.reference.delete()
+                db.collection("Playlist").document(playlistDocId).delete()
                 
                 # PlaylistHistory 컬렉션의 문서 삭제
                 history_ref = db.collection("PlaylistHistory").where("playlistId", "==", playlistDocId)
