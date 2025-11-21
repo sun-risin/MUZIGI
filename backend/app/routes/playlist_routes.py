@@ -271,20 +271,35 @@ def createPlaylist(curr_user):
         for n in plus_db_play.keys():
             new_playlists_name.remove(n)
             
-    try: # 사용자 프로필 가져오기 -> 재생목록 생성에 필요한 spotify 사용자 id 가져옴
-        spotifyId = spotify_getCurrentUser(spotifyToken)
-    except requests.exceptions.HTTPError as http_e:
-        http_error_msg = str(http_e)
-        return jsonify({"error" : f"spotify 사용자 프로필 가져오기 오류: {http_error_msg}"}), 500
+    if len(new_playlists_name) > 0:
+        try: # 사용자 프로필 가져오기 -> 재생목록 생성에 필요한 spotify 사용자 id 가져옴
+            spotifyId = spotify_getCurrentUser(spotifyToken)
+        except requests.exceptions.HTTPError as http_e:
+            http_error_msg = str(http_e)
+            return jsonify({"error" : f"spotify 사용자 프로필 가져오기 오류: {http_error_msg}"}), 500
 
-    try: # 1-3.2. 재생목록이 없는 게 있다면 새로 생성된다. (spotify)
-        created_playlists_info = spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name)
-    except requests.exceptions.HTTPError as http_e:
-        http_error_msg = str(http_e)
-        return jsonify({"error" : f"spotify 재생목록 생성 오류: {http_error_msg}"}), 500
-    except Exception as e:
-        error_msg = str(e)
-        return jsonify({"error" : f"뮤지기쪽 문제로 재생목록 생성 실패: {error_msg}"}), 500
+        try: # 1-3.2. 재생목록이 없는 게 있다면 새로 생성된다. (spotify)
+            created_playlists_info = spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name)
+        except requests.exceptions.HTTPError as http_e:
+            http_error_msg = str(http_e)
+            return jsonify({"error" : f"spotify 재생목록 생성 오류: {http_error_msg}"}), 500
+        except Exception as e:
+            error_msg = str(e)
+            return jsonify({"error" : f"뮤지기쪽 문제로 재생목록 생성 실패: {error_msg}"}), 500
+        
+    elif len(plus_db_play) > 0:
+        try:
+            DB_update(plus_db_play, userDocId)
+        except ValueError as ve: 
+            return jsonify({"error" : str(ve)}), 400  # 유효하지 않은 입력값 - validate 오류
+        except PermissionError as pe: 
+            return jsonify({"error" : str(pe)}), 401  # 뮤지기 사용자 토큰 문제
+        except Exception as e:
+            error_msg = str(e)
+            return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
+
+        return jsonify({"message" : f"재생목록 다 있는데 DB에 안 적혀 있어서 업뎃하고 끝남: {plus_db_play}"}), 200
+    
     
     # DB에 업뎃해야 하는 정보 정리 - 업뎃되지 않은 정보 + 새로 생성한 것의 정보
     # 딕셔너리 언패킹 -> 동일 키값 있으면 새로 생성된 정보 기준으로 동작하게 했음
