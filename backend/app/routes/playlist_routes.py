@@ -122,7 +122,9 @@ def spotify_getUserPlaylist(spotifyToken):
     get_playlist_params = { "limit" : 50 }
     
     try:
-        get_playlist_response = requests.get(SPOTIFY_GET_PLAYLIST_URL, playlistHistory_schemaeaders=get_playlist_header, params=get_playlist_params)
+        get_playlist_response = requests.get(SPOTIFY_GET_PLAYLIST_URL,
+                                             headers=get_playlist_header,
+                                             params=get_playlist_params)
         get_playlist_response.raise_for_status()
         
         curr_playlists = get_playlist_response.json().get("items")
