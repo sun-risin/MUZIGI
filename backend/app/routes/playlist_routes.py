@@ -66,6 +66,14 @@ emotions_mapping = {
             "position": 0 - 추가할 위치
         }'
         => 반환값: snapshot_id 인데 현재 재생목록의 버전값이래 다른 요청 시 쓸 수 있다니 참고
+        
+    5. 재생목록 내 아이템 조회 API - Get Playlist Items
+    - 호출 예시
+        curl --request GET \
+        --url https://api.spotify.com/v1/playlists/{playlist_id}/tracks \
+        --header 'Authorization: Bearer {access_token}'
+        --params 'market' : 'KR', 'fields':'total, items(track(id, name, artists(name)))', 'limit':50
+        => 반환값 중 total -> 들어있는 음악 개수 / items - 들어있는 요소, track(~) 음악 아이디, 제목, 가수 이름
 """
     
 # 사용자 프로필 가져오기 API -> spotify 사용자 id 반환
@@ -150,7 +158,7 @@ def spotify_getUserPlaylist(spotifyToken):
     return exist_playlists_info, no_db_playlists_info
 
 # spotify에 음악 추가 - 반환값 X
-def spotify_addItem(playlist_id, spotifyToken, trackInfo):
+def spotify_addItem(playlist_id, spotifyToken, trackInfo, position):
     trackId = trackInfo.get("trackId")
     
     trackInfo_db_errors = trackInfo_schema.validate(trackInfo)
@@ -162,7 +170,6 @@ def spotify_addItem(playlist_id, spotifyToken, trackInfo):
         "Authorization": f"Bearer {spotifyToken}",
         "Content-Type": "application/json"
     }
-    position = 0 # TODO - 조회 API 만들고 나서 total값 기반으로 수정하기
     add_data = {
         "uris" : [f"spotify:track:{trackId}"],
         "position": position 
@@ -172,16 +179,33 @@ def spotify_addItem(playlist_id, spotifyToken, trackInfo):
         add_response = requests.post(SPOTIFY_ADD_ITEMS_URL, headers=add_headers, json=add_data)
         add_response.raise_for_status()
         
-        playlist_ref = db.collection("Playlist").document(playlist_id)
-        playlist_doc = playlist_ref.get()
-        
-        position += len(playlist_doc.to_dict().get("tracks", {})) # TODO - 조회로 인해 position 0이 아닌 수로 잡았다면 이건 없애야 함
+        playlist_ref = db.collection("Playlist").document(playlist_id)        
         playlist_ref.update({
             f"tracks.{str(position)}": trackInfo
         })
     
     except requests.exceptions.HTTPError : raise
     except Exception : raise
+    
+# spotify 재생목록 내 아이템 조회 -> 반환값: 음악 개수
+def spotify_getItems(spotifyToken, playlist_id):
+    SPOTIFY_GET_ITEM_URL = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+    get_item_header = { "Authorization": f"Bearer {spotifyToken}" }
+    get_item_params = {'market' : 'KR',
+                       'fields': 'total, items(track(id, name, artists(name)))',
+                       'limit':50}
+    
+    try:
+        get_item_response = requests.get(SPOTIFY_GET_ITEM_URL,
+                                         headers=get_item_header, params=get_item_params)
+        get_item_response.raise_for_status()
+        
+        tracks_cnt = get_item_response.json().get("total") # 음악 개수
+        items = get_item_response.json().get("items")
+        
+    except requests.exceptions.HTTPError : raise # spotify 관련 에러
+
+    return tracks_cnt, items
 
 # --- DB 관련 함수 
 # DB에서 사용자가 갖고 있는 재생목록 가져오기 - spotify에는 이제 없는 재생목록 정보가 있을 수 있음
@@ -233,7 +257,46 @@ def DB_update(new_playlists_info, userDocId):
             })
             
     except Exception : raise
+    
+# spotify와 DB의 재생목록내역 비교 -> 반환값: spotify의 재생목록 내역
+def DB_checkHistory(playlist_id, items):
+    tracks = {}
+    for i in range(len(items)):
+        spoti_trackDoc = items[i]
+        spoti_track = spoti_trackDoc.get("track")
+        title = spoti_track.get("name")
+        trackId = spoti_track.get("id")
 
+        artists = spoti_track.get("artists")
+        if len(artists) > 1:
+            artist = " / ".join([a.get("name") for a in artists])
+        else:
+            artist = artists[0].get("name")
+
+        trackInfo = {
+            "title" : title,
+            "artist" : artist,
+            "trackId" : trackId
+        }
+        trackInfo_db_errors = trackInfo_schema.validate(trackInfo)
+        if trackInfo_db_errors:
+            raise ValueError(f"곡 정보의 유효하지 않은 입력값 : {trackInfo_db_errors}")
+
+        tracks[str(i)] = trackInfo
+
+    try:
+        playlist_ref = db.collection("Playlist").document(playlist_id)
+        playlist_snapshot = playlist_ref.get()
+        existing_tracks = playlist_snapshot.get("tracks") or {}
+
+        if existing_tracks != tracks:
+            # 다른 내용이면 업데이트
+            playlist_ref.update({"tracks": tracks})
+
+    except Exception : raise
+    
+    return tracks
+    
 # --- 뮤지기 서비스 API들
 # 재생목록 생성 API
 @playlist_blp.route("/new", methods=["POST"])
@@ -408,8 +471,27 @@ def addTrackToPlaylist(curr_user, emotionName):
     
     # --- 해당하는 재생목록 있음, 음악 추가   
     playlist_id = exist_db_play.get(emotionName) 
+    
     try:
-        spotify_addItem(playlist_id, spotifyToken, trackInfo)
+        position, items = spotify_getItems(spotifyToken, playlist_id)
+    except requests.exceptions.HTTPError as http_e:
+        return jsonify({"error" : f"spotify에서 재생목록 내역 가져오기 오류 : {str(http_e)}"}), 500
+    
+    if position >= 50:
+        return jsonify({"error" : "재생목록 내 음악 개수가 너무 많습니다. (최대 50개)"}), 400
+    
+    try:
+        spotify_tracks = DB_checkHistory(playlist_id, items)
+    except ValueError as ve: return jsonify({"error" : f"{ve}"}), 400
+    except Exception as e : return jsonify({"error" : f"재생목록내역 spotify랑 db 비교하다가 오류: {e}"}), 500
+    
+    # trackId는 다른데 곡이 같은 경우가 있어서 제목, 가수로 비교함
+    existing_pairs = {(v["title"], v["artist"]) for v in spotify_tracks.values()}
+    if (trackInfo.get("title"), trackInfo.get("artist")) in existing_pairs:
+        return jsonify({"message": "이미 있는 음악이라 추가 안함!"}), 204
+    
+    try:
+        spotify_addItem(playlist_id, spotifyToken, trackInfo, position)
     except ValueError as ve:
         return jsonify({"error" : f"{ve}"}), 400
     except requests.exceptions.HTTPError as http_e:
@@ -421,6 +503,7 @@ def addTrackToPlaylist(curr_user, emotionName):
     return jsonify({"message" : "음악 추가 성공!"}), 200
 
 
+# 재생목록 조회 API - 재생목록 내역을 반환해줌
 @playlist_blp.route("/<emotionName>/show", methods=["GET"])
 @login_required
 def showPlaylistHistory(curr_user, emotionName):
