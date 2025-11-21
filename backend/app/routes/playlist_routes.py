@@ -1,14 +1,14 @@
 from flask import Blueprint, request, jsonify, current_app
 from firebase_admin import firestore
 from app.routes.auth_routes import login_required
-from app.schemas.playlist_schema import PlaylistSchema, PlaylistHistorySchema
+from app.schemas.playlist_schema import PlaylistSchema, TrackInfoSchema
 import requests
 from functools import wraps
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
 db = firestore.client()
 playlist_schema = PlaylistSchema()
-playlistHistory_schema = PlaylistHistorySchema()
+trackInfo_schema = TrackInfoSchema()
 
 # --- 전역 변수
 emotions_mapping = {
@@ -53,7 +53,7 @@ emotions_mapping = {
         
         ⇒ 반환값 중 items 내 description, id 사용, 설명이 일치하는 게 있으면 DB에도 겹치는 문서가 있는지 확인 후 제외.
             겹치는 문서가 없다면 spotify에는 있는데 db에는 없는 것이므로 에러
-            TODO - 된다면 이 경우에 에러 나게 하지말고, playlist, users, palylisthistory 컬렉션에 있는 내용을 업뎃하도록 수정
+            TODO - 된다면 이 경우에 에러 나게 하지말고, playlist, users 컬렉션에 있는 내용을 업뎃하도록 수정
             
     4. 재생목록에 음악 추가 API - Add Items to Playlist
     - 호출 예시
@@ -153,6 +153,10 @@ def spotify_getUserPlaylist(spotifyToken):
 def spotify_addItem(playlist_id, spotifyToken, trackInfo):
     trackId = trackInfo.get("trackId")
     
+    trackInfo_db_errors = trackInfo_schema.validate(trackInfo)
+    if trackInfo_db_errors:
+                raise ValueError(f"곡정보의 유효하지 않은 데이터값 : {trackInfo_db_errors}")
+    
     SPOTIFY_ADD_ITEMS_URL = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
     add_headers = {
         "Authorization": f"Bearer {spotifyToken}",
@@ -168,18 +172,13 @@ def spotify_addItem(playlist_id, spotifyToken, trackInfo):
         add_response = requests.post(SPOTIFY_ADD_ITEMS_URL, headers=add_headers, json=add_data)
         add_response.raise_for_status()
         
-        new_hisotry = db.collection("PlaylistHistory").document()
-        new_hisotry_docId = new_hisotry.id
-        new_data = {
-            "historyDocId" : new_hisotry_docId,
-            "playlistId" : playlist_id,
-            "tracks": trackInfo
-        }
-        history_db_errors = playlistHistory_schema.validate(new_data)
-        if history_db_errors:
-            raise ValueError(f"유효하지 않은 데이터값 : {history_db_errors}")
+        playlist_ref = db.collection("Playlist").document(playlist_id)
+        playlist_doc = playlist_ref.get()
         
-        new_hisotry.set(new_data)
+        position += len(playlist_doc.to_dict().get("tracks", {})) # TODO - 조회로 인해 position 0이 아닌 수로 잡았다면 이건 없애야 함
+        playlist_ref.update({
+            f"tracks.{str(position)}": trackInfo
+        })
     
     except requests.exceptions.HTTPError : raise
     except Exception : raise
@@ -204,7 +203,7 @@ def DB_checkPlaylist(userDocId):
     
     return playlists_info
 
-# Playlist, users (TODO - PlaylistHistory) 컬렉션에 업뎃 - 반환 값 X
+# Playlist, users 컬렉션에 업뎃 - 반환 값 X
 def DB_update(new_playlists_info, userDocId):
     try:
         for emo in new_playlists_info.keys():        
@@ -214,7 +213,8 @@ def DB_update(new_playlists_info, userDocId):
             new_data = {
                 "emotionName" : f"{emo}", 
                 "playlistId":  new_playli.id,
-                "userDocId" : userDocId
+                "userDocId" : userDocId,
+                "tracks" : {}
             }
             playli_db_errors = playlist_schema.validate(new_data) # schema로 유효성 검사
             if playli_db_errors:
@@ -319,12 +319,7 @@ def createPlaylist(curr_user):
             for playlistDocId in delete_db_play.values():
                 # Playlist 컬렉션의 문서 삭제
                 db.collection("Playlist").document(playlistDocId).delete()
-                
-                # PlaylistHistory 컬렉션의 문서 삭제
-                history_ref = db.collection("PlaylistHistory").where("playlistId", "==", playlistDocId)
-                history_docs = history_ref.stream()
-                for hist in history_docs:
-                    hist.reference.delete()
+
         except Exception as e:
             error_msg = str(e)
             return jsonify({"error" : f"DB에 있던 의미없는 재생목록 정보 지우다가 오류: {error_msg}"}), 500
