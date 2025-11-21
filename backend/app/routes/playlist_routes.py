@@ -11,8 +11,10 @@ playlist_schema = PlaylistSchema()
 playlistHistory_schema = PlaylistHistorySchema()
 
 # --- 재생목록 존재 여부 확인 함수들
-# spotify에서 재생목록 존재 여부 확인 함수. 오류 시 반환 형태: JSON (type: tuple)
-def checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken):
+# spotify에서 재생목록 존재 여부 확인 함수.
+# 확인하는 API 종류에 따라 동작 로직 나뉨 - 생성: 다 존재하면 오류 / 음악 추가: 다 존재하면 OK
+# 오류 시 반환 형태: JSON (type: tuple)
+def checkPlaylist_spotify(api_type, playlists_name, emotions_mapping, spotifyToken):
     
     """
     사용 Sptofiy API - **Get Current User's Playlists**
@@ -41,7 +43,7 @@ def checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken):
             # description 패턴 기반 역매핑
             for eng, kor in emotions_mapping.items():
                 if description == f"뮤지기 - 감정 {kor}에 맞는 플리":
-                    if eng in new_playlists_name:
+                    if eng in playlists_name:
                         try:
                             playlist_doc = db.collection("Playlist").document(item_id).get()
                             if not playlist_doc.exists:
@@ -50,18 +52,20 @@ def checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken):
                             error_msg = str(e)
                             return jsonify({"error":f"DB 접근하다 오류난 듯... : {error_msg}"}), 500
                         
-                        new_playlists_name.remove(eng)
+                        playlists_name.remove(eng)
                         
-        if (len(new_playlists_name) == 0):                
-            return jsonify({"error" : f"이미 다 있음"}), 400    
+        if (api_type == "create") and (len(playlists_name) == 0):  
+            return jsonify({"error" : f"이미 다 있음"}), 400  
                 
     except requests.exceptions.HTTPError as e:
         error_msg = str(e)
         return jsonify({"error" : f"소유 재생목록 못가져옴: {error_msg}"}), 500
     
-# DB에서 재생목록 존재 여부 확인 - 어플에서 지우고 db 업뎃 안됐을 수 있음.
+# DB에서 재생목록 존재 여부 확인
+# 확인하는 API 종류에 따라 동작 로직 나뉨 - 생성: 존재하는 것 삭제 / 음악 추가: 존재하는지 체크만
 # 오류 시 반환 형태: JSON (type: tuple)
-def checkPlaylist_DB(new_playlists_name, userDocId):
+def checkPlaylist_DB(api_type, playlists_name, userDocId):
+    check = playlists_name[:] # 깊은 복사
     try:
         playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
         playlists = playlist_ref.stream()
@@ -71,15 +75,24 @@ def checkPlaylist_DB(new_playlists_name, userDocId):
             emotionName = data["emotionName"]
             playlistDocId = data["playlistId"]
 
-            if emotionName in new_playlists_name:
-                # PlaylistHistory 컬렉션에서 playlistId가 같은 문서 삭제
-                history_ref = db.collection("PlaylistHistory").where("playlistId", "==", playlistDocId)
-                history_docs = history_ref.stream()
-                for hist in history_docs:
-                    hist.reference.delete()
+            if emotionName in playlists_name:
+                if api_type == "create":
+                    # PlaylistHistory 컬렉션에서 playlistId가 같은 문서 삭제
+                    history_ref = db.collection("PlaylistHistory").where("playlistId", "==", playlistDocId)
+                    history_docs = history_ref.stream()
+                    for hist in history_docs:
+                        hist.reference.delete()
 
-                # Playlist 컬렉션의 문서 삭제
-                play.reference.delete()
+                    # Playlist 컬렉션의 문서 삭제
+                    play.reference.delete()
+                    
+                elif api_type == "add_track":
+                    check.remove(emotionName)
+                    return jsonify({"playlistId" : playlistDocId}), 200
+                    
+        
+        if (api_type == "add_track") and (len(check) == 0):
+            return jsonify({ "error" : "해당하는 재생목록이 없음" }), 400
         
     except Exception as e:
         return jsonify({"error" : f"오류 발생 : {e}"}), 500
@@ -136,8 +149,8 @@ def createPlaylist(curr_user):
     request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
     spotifyToken = request_data["spotifyToken"]    
     
-    spoti_check = checkPlaylist_spotify(new_playlists_name, emotions_mapping, spotifyToken) # spotify에서 재생목록 존재 여부 확인
-    if type(spoti_check) is tuple: # 왜인지 모르겠는데 print 찍어보니 return jsonify({})~의 type이 tuple로 나옴
+    spoti_check = checkPlaylist_spotify("create", new_playlists_name, emotions_mapping, spotifyToken) # spotify에서 재생목록 존재 여부 확인
+    if type(spoti_check) is tuple: 
         return spoti_check
     
     # 사용자 프로필 가져오기 API
@@ -187,7 +200,7 @@ def createPlaylist(curr_user):
     
     # --- 여기서부터 DB 조작    
     
-    db_check = checkPlaylist_DB(new_playlists_name, userDocId) # 생성하고 나서 DB에 잘 저장됐는지 존재여부 확인
+    db_check = checkPlaylist_DB("create", new_playlists_name, userDocId) # 생성하고 나서 DB에 잘 저장됐는지 존재여부 확인
     if type(db_check) is tuple:
         return db_check
     
@@ -200,7 +213,7 @@ def createPlaylist(curr_user):
             new_data = {
                 "emotionName" : f"{emo}", # 영어가 들어감
                 "playlistId":  new_playli.id,
-                "userDocId" : curr_user.get("userDocId")
+                "userDocId" : userDocId
             }
             playli_db_errors = playlist_schema.validate(new_data) # schema로 유효성 검사
             if playli_db_errors:                      
@@ -227,19 +240,49 @@ def createPlaylist(curr_user):
 # 선호 여부 기록 -> 재생목록 내 음악 추가 API
 @playlist_blp.route("/<emotionName>/add", methods=["POST"])
 @login_required
-def addTrackToPlaylist(curr_user):
-    if not curr_user:
-        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
-    userDocId = curr_user.get("userDocId")
-    
+def addTrackToPlaylist(curr_user, emotionName):
     """
     1-2. 재생목록 존재 여부를 확인한다.
     1-3.1. 재생목록이 존재하지 않으면 생성 API를 부르고 마저 진행된다.
     1-3.2. 재생목록이 있다면 해당하는 감정 재생목록에 저장된다.
            (spotify, firestore 모두 반영)
     """
+    if not curr_user:
+        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
+    userDocId = curr_user.get("userDocId")
+    
+    request_data = request.get_json()
+    spotifyToken = request_data.get("spotifyToken")
+    trackInfo = request_data.get("trackInfo") # 넣을 음악 정보 Object
+    trackId = trackInfo.get("trackId")
+    
+    playlist_emo = [emotionName]
+    emotions_mapping = {
+        "happiness" : "행복",
+        "excited" : "신남",
+        "aggro" : "화남",
+        "sorrow" : "슬픔",
+        "nervous" : "긴장" } # 감정값 영어(key) 한글(value) 딕셔너리
+    
+    # 데이터베이스 먼저 확인
+    db_check = checkPlaylist_DB("add_track", playlist_emo, userDocId) 
+    if type(db_check) is tuple:
+        if db_check[1] == 500:
+            return db_check
+        elif db_check[1] == 400:
+            emotions_mapping # 이거 아니고 재생목록 생성 API 호출. Header에 userToken, Body에 spotifyToken
+                                # 이게 안되면... 걍 오류로 하자
+        # 데이터베이스에 있다
+        elif db_check[1] == 200:
+            playlist_id = db_check[0].get('playlistId')
+    
+    # 그 다음에 spotify 앱 확인
+    spoti_check = checkPlaylist_spotify("add_track", playlist_emo, emotions_mapping, spotifyToken) 
+    if type(spoti_check) is tuple: 
+        return spoti_check
     
     
+    # --- 해당하는 재생목록 있음, 음악 추가    
     """
     사용할 Spotify API - Add Items to Playlist
     - 호출 예시
@@ -253,4 +296,39 @@ def addTrackToPlaylist(curr_user):
         }'
         => 반환값: snapshot_id 인데 현재 재생목록의 버전값이래 다른 요청 시 쓸 수 있다니 참고
     """
-    return 
+    SPOTIFY_ADD_ITEMS_URL = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
+    add_headers = {
+        "Authorization": f"Bearer {spotifyToken}",
+        "Content-Type": "application/json"
+    }
+    position = 0 # TODO - 조회 API 만들고 나서 total값 기반으로 수정하기
+    add_data = {
+        "uris" : [f"spotify:track:{trackId}"],
+        "position": position 
+    }    
+    try:
+        # TODO - 조회 API 만들고 나서 이미 있는 노래면 추가 X
+        add_response = requests.post(SPOTIFY_ADD_ITEMS_URL, headers=add_headers, json=add_data)
+        add_response.raise_for_status()
+        
+        new_hisotry = db.collection("PlaylistHistory").document()
+        new_hisotry_docId = new_hisotry.id
+        new_data = {
+            "historyDocId" : new_hisotry_docId,
+            "playlistId" : playlist_id,
+            "tracks": trackInfo
+        }
+        history_db_errors = playlistHistory_schema.validate(new_data)
+        if history_db_errors:
+            return jsonify({ "error" : f"유효하지 않은 데이터값 : {history_db_errors}"}), 400
+        
+        new_hisotry.set(new_data)
+    
+    except requests.exceptions.HTTPError as http_e:
+        http_error_msg = str(http_e)
+        return jsonify({"error" : f"재생목록에 음악 추가 실패: {http_error_msg}"}), 500
+    except Exception as e:
+        error_msg = str(e)
+        return jsonify({"error" : f"뮤지기쪽의 문제로 음악 추가 실패 : {error_msg}"}), 500
+    
+    return jsonify({"message" : "음악 추가 성공!"}), 200
