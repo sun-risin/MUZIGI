@@ -86,6 +86,7 @@
                     spotifyAccessToken = data.access_token;  // 🔥 저장
                     statusEl.textContent = "Spotify 로그인됨! 토큰 확인 완료.";
                     statusEl.className = 'success';
+                    console.log(data.access_token); // TODO - 나중에 배포 시 지우기~~
                 } else {
                     statusEl.textContent = "Spotify 로그인되지 않음.";
                     statusEl.className = 'error';
