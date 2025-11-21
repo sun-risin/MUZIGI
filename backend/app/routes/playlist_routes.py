@@ -185,7 +185,7 @@ def spotify_addItem(playlist_id, spotifyToken, trackInfo):
 # --- DB 관련 함수 
 # DB에서 사용자가 갖고 있는 재생목록 가져오기 - spotify에는 이제 없는 재생목록 정보가 있을 수 있음
 def DB_checkPlaylist(userDocId):
-    playlists_info = [{}]
+    playlists_info = {}
     
     try:
         playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
@@ -196,12 +196,7 @@ def DB_checkPlaylist(userDocId):
             emotionName = data["emotionName"]
             playlistDocId = data["playlistId"]
             
-            playlists_info.append(
-                {
-                    "emotionName" : emotionName,
-                    "playlistDocId" : playlistDocId
-                }
-            )
+            playlists_info[emotionName] = playlistDocId
         
     except Exception : raise
     
@@ -273,6 +268,8 @@ def createPlaylist(curr_user):
     else:
         for name in exist_play.keys():
             new_playlists_name.remove(name)
+        for n in plus_db_play.keys():
+            new_playlists_name.remove(n)
             
     try: # 사용자 프로필 가져오기 -> 재생목록 생성에 필요한 spotify 사용자 id 가져옴
         spotifyId = spotify_getCurrentUser(spotifyToken)
