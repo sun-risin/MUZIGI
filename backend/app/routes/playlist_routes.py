@@ -296,6 +296,41 @@ def DB_checkHistory(playlist_id, items):
     except Exception : raise
     
     return tracks
+
+def DB_getHistory(userDocId, emotionName):
+    try:
+        user_ref = db.collection("users").document(userDocId)
+        user_doc = user_ref.get()
+        if not user_doc.exists: 
+            raise PermissionError("유효하지 않은 사용자입니다.")
+            
+        user_playlistIds = user_doc.get("playlistIds")
+        
+        playlistDocId = user_playlistIds.get(f"{emotionName}")
+        playlist_ref = db.collection("Playlist").document(playlistDocId)
+        playlist_doc = playlist_ref.get()
+        if not playlist_doc.exists: 
+            raise FileNotFoundError(f"조회하려는 감정의 재생목록이 없습니다. 감정: {emotionName}")
+        
+        history = playlist_doc.get("tracks") or {} # 아직 내용이 없을 수 있음
+        
+        """
+        만약 전체 재생목록을 보내야 한다면 그때의 코드... 
+        (이 경우 위의 코드는 삭제하고 emotionName은 Path Parameter로 받지 않음, 반환 값은 hisotrys)
+        historys = {}
+        for emo in emotions_mapping.keys():
+            playlistDocId = user_playlistIds.get(f"{emo}")
+            playlist_ref = db.collection("Playlist").document(playlistDocId)
+            playlist_doc = playlist_ref.get()
+            if not playlist_doc.exists: 
+                raise FileNotFoundError(f"조회하려는 감정의 재생목록이 없습니다. 감정: {emo}")
+            
+            historys[f"{emo}"] = playlist_doc.get("tracks") or {}
+        """
+        
+    except Exception : raise
+    
+    return history
     
 # --- 뮤지기 서비스 API들
 # 재생목록 생성 API
@@ -507,4 +542,17 @@ def addTrackToPlaylist(curr_user, emotionName):
 @playlist_blp.route("/<emotionName>/show", methods=["GET"])
 @login_required
 def showPlaylistHistory(curr_user, emotionName):
+    if not curr_user:
+        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
+    userDocId = curr_user.get("userDocId")
+    
+    try:
+        DB_getHistory(userDocId, emotionName)
+    except FileNotFoundError as fe:
+        return jsonify({"error" : f"{str(fe)}"}), 400
+    except PermissionError as pe:
+        return jsonify({"error" : f"{str(pe)}"}), 401
+    except Exception as e:
+        return jsonify({"error" : f"재생목록 내역 DB 조회하다 에러남 : {str(e)}"}), 500
+    
     return jsonify({""})
