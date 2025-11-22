@@ -1,4 +1,4 @@
-from flask import Blueprint, request, jsonify, current_app
+from flask import Blueprint, request, jsonify
 from firebase_admin import firestore
 from app.routes.auth_routes import login_required
 from app.schemas.playlist_schema import PlaylistSchema, TrackInfoSchema
