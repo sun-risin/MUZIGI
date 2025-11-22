@@ -95,7 +95,6 @@ def login():
             "nickname" : doc_nickname, # 뮤지기 첫 버블 위해 바로 넘겨줌,
             "firstChatId" : doc_firstChatId, # 채팅 첫 아이디 - 로그인 시 첫 채팅으로 자동 로드되게 넘겨줌
             "message": " 로그인 성공!"
-            # TODO - 재생목록 아이디 4개 다 전달해주기.
             }), 200     # 로그인 성공
     
     else:               # 비밀번호 다름 ; 로그인 실패
