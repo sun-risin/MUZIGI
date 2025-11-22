@@ -3,7 +3,6 @@ from firebase_admin import firestore
 from app.routes.auth_routes import login_required
 from app.schemas.playlist_schema import PlaylistSchema, TrackInfoSchema
 import requests
-from functools import wraps
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
 db = firestore.client()
