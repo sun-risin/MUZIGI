@@ -547,7 +547,7 @@ def showPlaylistHistory(curr_user, emotionName):
     userDocId = curr_user.get("userDocId")
     
     try:
-        DB_getHistory(userDocId, emotionName)
+        history = DB_getHistory(userDocId, emotionName)
     except FileNotFoundError as fe:
         return jsonify({"error" : f"{str(fe)}"}), 400
     except PermissionError as pe:
@@ -555,4 +555,4 @@ def showPlaylistHistory(curr_user, emotionName):
     except Exception as e:
         return jsonify({"error" : f"재생목록 내역 DB 조회하다 에러남 : {str(e)}"}), 500
     
-    return jsonify({""})
+    return jsonify({"tracks" : history}), 200
