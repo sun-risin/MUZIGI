@@ -81,7 +81,7 @@ def emotion_empathy(emotion_docData):
     
 # --- 메시지 저장 모듈 ---
 # 뮤지기 버블 저장
-def MUZIGI_save_message(chatId, empathy, recommend):
+def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
     ment_recommend = ""
     for i in range(len(recommend)):
         reco = recommend[i]
@@ -95,6 +95,7 @@ def MUZIGI_save_message(chatId, empathy, recommend):
     new_message.set({
         "chatId":chatId,
         "messageId":new_message_docId,
+        "emotionName" : emotion[emotionName],
         "content": content,
         "senderType": False,
         "senderId": "MUZIGI",
@@ -107,9 +108,9 @@ def MUZIGI_save_message(chatId, empathy, recommend):
 # 사용자 버블 저장
 def user_save_message(userDocId, chatId, emotionName):
     ments = [
-        f"제 감정은 지금 \"{emotionName}\"이에요.\n 이 감정에 맞는 음악을 추천해 주세요!",
-        f"\"{emotionName}\"라는 감정에 맞는 음악이 필요해요.",
-        f"\"{emotionName}\"의 감정이 느껴질 때 듣기 좋은 음악이 있을까요?"
+        f"제 감정은 지금 \"{emotionName}\"이에요.\n지금 들으면 좋을 음악을 추천해 주세요!",
+        f"{emotionName}이라는 감정에 맞는 음악이 필요해요.",
+        f"{emotionName}의 감정이 느껴질 때 듣기 좋은 음악이 있을까요?"
     ]
     content = random.choice(ments)
       
@@ -119,6 +120,7 @@ def user_save_message(userDocId, chatId, emotionName):
     new_message.set({
         "chatId":chatId,
         "messageId":new_message_docId,
+        "emotionName" : emotion[emotionName],
         "content": content,
         "senderType": True,
         "senderId": userDocId,
@@ -232,7 +234,7 @@ def messages(curr_user):
         return jsonify({"message": f'{recommend_tracks}'}), 500
     
     try:
-        muzigi_content = MUZIGI_save_message(chat_list[0], muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
+        muzigi_content = MUZIGI_save_message(chat_list[0], emotionName, muzigi_empathy_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
     except:
         return jsonify({"message": "뮤지기 메시지 저장 오류 발생"}), 500
     
@@ -266,6 +268,7 @@ def chat_show_messages(curr_user, chatId):
                 "senderId": data.get("senderId"),
                 "content": data.get("content"),
                 "recommendTracks" : data.get("recommendTracks"),
+                "emotionName" : data.get("emotionName"),
                 "created_at": data.get("created_at")
             })
         

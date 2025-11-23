@@ -4,5 +4,8 @@ main_blp = Blueprint("main", __name__)
 
 @main_blp.route("/")
 def home():
-    # return render_template("test.html")
-    return render_template("test2.html") # spotify 액세스토큰 테스트페이지
+    return render_template("test.html")
+
+@main_blp.route("/spoti")
+def aboutSpotify():
+    return render_template("test2.html")

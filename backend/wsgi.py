@@ -1,11 +1,11 @@
 # entry point
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from app import create_app
 
 app = create_app()
 
-load_dotenv()   # .env 파일에서 환경 변수 로드
+load_dotenv(find_dotenv())   # .env 파일에서 환경 변수 로드 -> Flask 실행위치 관계 없이 찾게 수정함
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
 PORT = int(os.getenv('PORT', 5000)) 

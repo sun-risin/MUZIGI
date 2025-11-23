@@ -1,5 +1,5 @@
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 from flask import Flask
 from flask_cors import CORS
 import firebase_admin
@@ -7,19 +7,23 @@ from firebase_admin import credentials, initialize_app
 
 def create_app():
     # .env 파일에서 환경 변수 로드
-    load_dotenv()
+    load_dotenv(find_dotenv())
     
     # Flask 앱 설정
     app = Flask(__name__)
     
     # 세션 사용을 위한 Secret Key 설정
-    app.secret_key = os.getenv("FLASK_SECRET_KEY", os.urandom(24))
+    app.secret_key = os.getenv("FLASK_SECRET_KEY")
+    if not app.secret_key:
+        raise RuntimeError("FLASK_SECRET_KEY is not set in environment variables")
     
     # CORS 허용 위해 프론트엔드 URL - 배포 생각해서 지정하는 식으로 수정함
     FRONTEND_URL = os.getenv("FRONTEND_URL", 'http://127.0.0.1:5173')
     
     # JWT 인증 비밀키 설정
-    app.config['MUZIGI_JWT_KEY'] = 'muzigi-secret'
+    app.config['MUZIGI_JWT_KEY'] = os.getenv("MUZIGI_JWT_KEY")
+    if not app.config['MUZIGI_JWT_KEY']:
+        raise RuntimeError("MUZIGI_JWT_KEY is not set in environment variables")
     
     # 리액트 Vite 서버 요청 허용
     # + supports_credentials=True -> 세션 쿠키 주고받게.
