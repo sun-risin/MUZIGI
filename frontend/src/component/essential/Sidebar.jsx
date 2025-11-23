@@ -39,54 +39,51 @@ function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
   // (기본 감정 5개를 항상 보여주고, "좋아요"가 있으면 채워넣음)
   const allCategories = {};
   for (const emotion of BASE_EMOTIONS) {
-    allCategories[emotion] = likedTracksByEmotion[emotion] || []; // "행복": [track1] or "행복": []
+    allCategories[emotion] = likedTracksByEmotion[emotion] || [];
   }
 
   return (
-    <div ref={sidebarRef} className={`sidebar ${isOpen ? "open" : ""}`}>
+   <div ref={sidebarRef} className={`sidebar ${isOpen ? "open" : ""}`}>
+       <div className="sidebar-header">
+         <button onClick={closeSidebar} className="close-btn">
+         <FontAwesomeIcon icon={faChevronRight} />
+         </button>
+       </div>
 
-        <div className="sidebar-header">
-            <button onClick={closeSidebar} className="close-btn">
-                <FontAwesomeIcon icon={faChevronRight} />
-            </button>
-        </div>
+       <div className="sidebar-section main-actions">
+         <div className="action-item">
+           <FontAwesomeIcon icon={faPlus} className="action-icon" />
+           <span>새 채팅</span>
+         </div>
+       <div className="action-item">
+         <FontAwesomeIcon icon={faPen} className="action-icon" />
+         <span>사용자 프로필</span>
+       </div>
+     </div>
 
-        <div className="sidebar-section main-actions">
-            <div className="action-item">
-                <FontAwesomeIcon icon={faPlus} className="action-icon" />
-                <span>새 채팅</span>
-            </div>
-            <div className="action-item">
-                <FontAwesomeIcon icon={faPen} className="action-icon" />
-                <span>사용자 프로필</span>
-            </div>
-        </div>
-
-        <div className="sidebar-section playlist-section">
-            <h3><FontAwesomeIcon icon={faMusic} className="fa-icon"/> 재생 목록</h3>
-            <div className="scrollable-list">
-                {/* 💡 [수정] 4. "groupedPlaylists" 대신 "allCategories"를 렌더링 */}
-                {Object.keys(allCategories).map((emotion) => (
-                  <div key={emotion} className="playlist-category">
-                    <h4 className="playlist-emotion-title">{emotion}</h4>
-                    
-                    {/* 💡 [수정] 5. 목록이 비어있을 때 "empty" 메시지 표시 */}
-                    {allCategories[emotion].length > 0 ? (
-                      allCategories[emotion].map((track) => (
-                        <div key={track.trackId} className="playlist-item">
-                          <p className="playlist-item-title">{track.title}</p>
-                          <p className="playlist-item-artist">{track.artist}</p>
-                        </div>
-                      ))
-                    ) : (
-                  <div className="playlist-item-empty">
-                    좋아요를 눌러 음악을 추가하세요.
-                  </div>
-                )}
-            </div>
-            ))}
-        </div>
-    </div>
+     <div className="sidebar-section playlist-section">
+       <h3>
+         <FontAwesomeIcon icon={faMusic} className="fa-icon" /> 재생 목록
+       </h3>
+       <div className="scrollable-list">
+         {Object.keys(allCategories).map((emotion) => (
+           <div key={emotion} className="playlist-category">
+           <h4 className="playlist-emotion-title">{emotion}</h4>
+           {allCategories[emotion].length > 0 ? (
+             allCategories[emotion].map((track) => (
+               <div key={track.trackId} className="playlist-item">
+                 <p className="playlist-item-title">{track.title}</p>
+                 <p className="playlist-item-artist">{track.artist}</p>
+               </div>
+              ))
+             ) : (
+             <div className="playlist-item-empty-category">
+               좋아요를 눌러 음악을 추가하세요. </div>
+            )}
+           </div>
+         ))}
+       </div>
+     </div>
 
         <div className="sidebar-section chatlist-section">
             <h3><FontAwesomeIcon icon={faMessage} className="fa-icon"/> 채팅 목록</h3>

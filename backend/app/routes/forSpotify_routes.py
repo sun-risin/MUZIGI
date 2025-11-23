@@ -99,8 +99,8 @@ def spotify_callback():
         session['refresh_token'] = token_data.get('refresh_token')
         
         # --- React 앱의 메인 페이지로 리디렉션 ---
-        #return redirect(f"{FRONTEND_URL}?access_token={token_data.get('access_token')}?refresh_token={token_data.get('refresh_token')}")
-        return redirect("/") # 테스트페이지
+        return redirect(f"{FRONTEND_URL}?access_token={token_data.get('access_token')}?refresh_token={token_data.get('refresh_token')}")
+        #return redirect("/spoti") # 백엔드 서버 테스트페이지
 
     except requests.exceptions.HTTPError as e:
         return jsonify({"error": "Failed to retrieve token", "details": str(e)}), 500
@@ -125,3 +125,5 @@ def get_spotify_token():
         return jsonify({
             "error": "Not logged in"
         }), 401
+        
+# TODO - refresh 토큰 발급
