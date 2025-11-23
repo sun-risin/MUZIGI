@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import './Chat.css';
-import Muzigi from '../../assets/Muzigi.png';
+import Muzigi from '../../assets/muzigi.png'; 
 import MusicPlayer from './MusicPlayer';
 
 function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTracks }) {
@@ -11,7 +11,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
 
-  // 1. 스포티파이 SDK 초기화
+  // 1. 스포티파이 SDK 및 재생목록 초기화
   useEffect(() => {
     const delay = 2500;
     const createPlaylistsIfNeeded = async (spotifyToken) => {
@@ -111,7 +111,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
     fetchChatHistory();
   }, [selectedChatId, setMessages]);
 
-  // 3. 스크롤 처리
+  // 3. 스크롤 자동 이동
   useLayoutEffect(() => {
     if (chatListRef.current) {
       const container = chatListRef.current;
@@ -124,7 +124,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
     }
   }, [messages]);
 
-  // 4. 렌더링
+  // 4. 화면 렌더링
   return (
     <div className="chat-container" ref={chatListRef}>
       <div className="chat-welcome">
@@ -137,6 +137,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
 
       <div className="chat-messages-list">
         {messages.map((msg, index) => {
+          // 뮤지기(봇)이 추천한 음악이 있는 경우
           if (msg.senderType === false && msg.recommendTracks && msg.recommendTracks.length > 0) {
             return (
               <div key={index} className="chat-bubble left">
@@ -145,14 +146,12 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
                   <p>{msg.content}</p>
                   <div className="music-list-container">
                     {msg.recommendTracks.map((track, i) => {
-                      const likedTrackInfo = playlistTracks.find(
-                        likedItem => likedItem.trackId === track.trackId
-                      );
+                      // 좋아요 여부 확인 (안전하게 참조)
+                      const likedTrackInfo = playlistTracks 
+                        ? playlistTracks.find(item => item.trackId === track.trackId)
+                        : null;
+                        
                       const isLiked = !!likedTrackInfo;
-
-                      // [핵심 수정] 백엔드가 보내주는 이름(emotionName)도 같이 확인!
-                      // msg.emotionName : 백엔드 DB에서 불러온 값 (새로고침 후)
-                      // msg.emotion     : 방금 프론트에서 생성한 값 (새로고침 전)
                       const resolvedEmotion = msg.emotionName || msg.emotion || track.emotion || likedTrackInfo?.emotion;
 
                       return (
@@ -164,7 +163,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
                           playlistTracks={playlistTracks}
                           isLiked={isLiked}
                           onToggleLike={onToggleLike}
-                          emotion={resolvedEmotion} // 이제 DB 값을 제대로 읽어서 전달합니다
+                          emotion={resolvedEmotion}
                         />
                       );
                     })}
@@ -173,7 +172,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
               </div>
             );
           }
-
+          // 일반 텍스트 메시지 (사용자 or 뮤지기)
           return (
             <div key={index} className={`chat-bubble ${msg.senderType ? 'right' : 'left'}`}>
               {!msg.senderType && (

@@ -38,7 +38,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       try {
         // [참고] deviceId 앞에 URL 변수 처리가 올바르게 되도록 수정됨
         const response = await fetch(
-          `https://api.spotify.com/v1/me/player/play?device_id=$/$${deviceId}`, 
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, 
           {
             method: 'PUT',
             headers: {

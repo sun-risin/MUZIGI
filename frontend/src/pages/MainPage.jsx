@@ -1,34 +1,32 @@
 import React, { useState, useEffect } from 'react';
-import Chat from './essential/Chat';
-import Emotion from './essential/Emotion';
-import Sidebar from './essential/Sidebar';
+import Chat from '../components/features/Chat';
+import Emotion from '../components/features/Emotion';
+import Sidebar from '../components/layout/Sidebar';
 import './MainPage.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
+
+const moodMap = {
+  "행복": "happiness",
+  "신남": "excited",
+  "화남": "aggro",
+  "슬픔": "sorrow",
+  "긴장": "nervous"
+};
+
+const engToKor = {
+  "happiness": "행복",
+  "excited": "신남",
+  "aggro": "화남",
+  "sorrow": "슬픔",
+  "nervous": "긴장"
+};
+
 
 function MainPage({ setIsLoggedIn }) { 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]); 
   const [selectedChatId, setSelectedChatId] = useState(null);
-  
-  // 1. 한글 -> 영어 (서버 요청용)
-  const moodMap = {
-    "행복": "happiness",
-    "신남": "excited",
-    "화남": "aggro",
-    "슬픔": "sorrow",
-    "긴장": "nervous"
-  };
-
-  // [추가] 2. 영어 -> 한글 (화면 표시용 역방향 매핑)
-  const engToKor = {
-    "happiness": "행복",
-    "excited": "신남",
-    "aggro": "화남",
-    "sorrow": "슬픔",
-    "nervous": "긴장"
-  };
-
   const [playlistTracks, setPlaylistTracks] = useState([]); 
 
   // 1. 재생목록 조회
@@ -52,7 +50,7 @@ function MainPage({ setIsLoggedIn }) {
               title: track.title,
               artist: track.artist,
               trackId: track.trackId,
-              emotion: emotion // 여기는 이미 한글로 잘 들어가고 있음
+              emotion: emotion
             }));
           }
         } 
@@ -76,7 +74,7 @@ function MainPage({ setIsLoggedIn }) {
     }
   };
 
-  // 2. 좋아요 기능 (수정됨: 화면엔 한글로, 서버엔 영어로)
+  // 2. 좋아요 기능
   const handleToggleLike = async (track) => {
     const isAlreadyLiked = playlistTracks.some(item => item.trackId === track.trackId);
     if (isAlreadyLiked) return; 
@@ -87,9 +85,7 @@ function MainPage({ setIsLoggedIn }) {
       return;
     }
 
-    // [핵심 수정] 화면에 보여줄 때는 무조건 '한글'로 통일해야 사이드바에 뜹니다!
-    // track.emotion이 'excited'라면 '신남'으로 바꾸고, 이미 '신남'이면 그대로 둡니다.
-    const uiEmotion = engToKor[track.emotion] || track.emotion;
+  const uiEmotion = engToKor[track.emotion] || track.emotion;
 
     console.log(`좋아요 클릭: ${track.title} (화면용: ${uiEmotion})`);
 
@@ -97,7 +93,7 @@ function MainPage({ setIsLoggedIn }) {
       title: track.title,
       artist: track.artist,
       trackId: track.trackId,
-      emotion: uiEmotion // <--- 한글 이름표 부착!
+      emotion: uiEmotion 
     };
 
     setPlaylistTracks(prev => {
@@ -108,7 +104,6 @@ function MainPage({ setIsLoggedIn }) {
     const muzigiToken = localStorage.getItem('accessToken');
     const spotifyToken = localStorage.getItem('spotifyAccessToken');
     
-    // 서버에 보낼 때는 다시 영어로 (또는 원래 값 사용)
     const engEmotion = moodMap[track.emotion] || track.emotion;
 
     try {
@@ -120,7 +115,7 @@ function MainPage({ setIsLoggedIn }) {
         },
         body: JSON.stringify({
           spotifyToken: spotifyToken,
-          trackInfo: {
+          trackInfo: { 
             title: track.title,
             artist: track.artist,
             trackId: track.trackId
@@ -174,7 +169,6 @@ function MainPage({ setIsLoggedIn }) {
     } else if (localStorage.getItem('spotifyAccessToken')) {
       fetchPlaylists();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); 
 
   useEffect(() => {

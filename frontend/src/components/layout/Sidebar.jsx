@@ -2,31 +2,25 @@ import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Sidebar.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { 
-  faChevronRight, 
-  faChevronDown, 
-  faPlus, 
-  faPen, 
-  faMusic, 
-  faMessage, 
-  faRightFromBracket 
-} from '@fortawesome/free-solid-svg-icons';
+import { faChevronRight, faChevronDown, faPlus, faPen, faMusic, faMessage, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 
+// 기본 감정 목록
 const BASE_EMOTIONS = ["행복", "신남", "화남", "슬픔", "긴장"];
 
-function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
+function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks = [] }) {
   const sidebarRef = useRef(null);
   const navigate = useNavigate();
-  const [openEmotions, setOpenEmotions] = useState({});
+  const [openEmotions, setOpenEmotions] = useState({}); // 사이드바 재생목록 내 감정 토글 상태
 
-  // 토글 함수
+  // 재생목록 감정 토글 함수(열고 닫기)
   const toggleEmotion = (emotion) => {
     setOpenEmotions(prev => ({
       ...prev, 
-      [emotion]: !prev[emotion]
+      [emotion]: !prev[emotion] // 상태 반대로 뒤집기
     }));
   };
 
+  // 사이드바 닫기 버튼
   const closeSidebar = (e) => {
     e.stopPropagation();
     setIsOpen(false);
@@ -35,15 +29,16 @@ function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
   // 로그아웃 함수
   const handleLogout = async () => {
     localStorage.removeItem("accessToken");
-    localStorage.removeItem("spotifyAccessToken"); // 스포티파이 토큰도 삭제 권장
+    localStorage.removeItem("spotifyAccessToken");
     localStorage.removeItem("chatId");
     localStorage.removeItem("userNickname");
     setIsLoggedIn(false);
     alert("로그아웃 되었습니다.");
-    navigate("/login");
+    navigate("/login"); // 로그인 페이지 이동
   };
 
-  // "좋아요" 목록을 감정별로 그룹핑
+  // -------------------------------
+  // 선호 표시 노래 '감정별' 표시
   const likedTracksByEmotion = playlistTracks.reduce((acc, track) => {
     const emotion = track.emotion || '기타'; 
     if (!acc[emotion]) {
@@ -59,20 +54,21 @@ function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
     allCategories[emotion] = likedTracksByEmotion[emotion] || [];
   }
 
+  // ----------화면 렌더링---------------------
   return (
     <div ref={sidebarRef} className={`sidebar ${isOpen ? "open" : ""}`}>
       
-      {/* 1. 상단 헤더 (고정) */}
+      {/* 사이드바 닫기 */}
       <div className="sidebar-header">
         <button onClick={closeSidebar} className="close-btn">
           <FontAwesomeIcon icon={faChevronRight} />
         </button>
       </div>
 
-      {/* 2. 스크롤 영역 (이 안에 있는 것만 스크롤 됨) */}
+      {/* 스크롤 영역 */}
       <div className="sidebar-scroll-area">
         
-        {/* 메인 액션 (새 채팅, 프로필) */}
+        {/* 새 채팅/ 프로필 메뉴 */}
         <div className="sidebar-section main-actions">
           <div className="action-item">
             <FontAwesomeIcon icon={faPlus} className="action-icon" />
@@ -84,18 +80,20 @@ function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
           </div>
         </div>
 
-        {/* 재생 목록 섹션 */}
+        {/* 재생목록 */}
         <div className="sidebar-section playlist-section">
           <h3><FontAwesomeIcon icon={faMusic} className="fa-icon"/> 재생 목록</h3>
           <div className="playlist-list">
             {Object.keys(allCategories).map((emotion) => (
               <div key={emotion} className="playlist-category">
-                {/* 감정 제목 (클릭 시 토글) */}
+                
+                {/* 재생목록 내 토글 클릭 -> 목록 열고 닫기 */}
                 <div 
                   className="playlist-emotion-header" 
                   onClick={() => toggleEmotion(emotion)}
                 >
                   <span className="playlist-emotion-title">{emotion}</span>
+                  {/* 토글 아이콘 */}
                   <FontAwesomeIcon 
                     icon={openEmotions[emotion] ? faChevronDown : faChevronRight} 
                     className="toggle-icon"
@@ -125,7 +123,7 @@ function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
           </div>
         </div>
 
-        {/* 채팅 목록 섹션 */}
+        {/* 채팅 목록(2차 완성 예정) */}
         <div className="sidebar-section chatlist-section">
           <h3><FontAwesomeIcon icon={faMessage} className="fa-icon"/> 채팅 목록</h3>
           <div className="chat-list">
@@ -136,7 +134,7 @@ function Sidebar({ isOpen, setIsOpen, setIsLoggedIn, playlistTracks }) {
 
       </div> {/* 스크롤 영역 끝 */}
 
-      {/* 3. 하단 푸터 (항상 바닥에 고정) */}
+      {/* 로그아웃 버튼 */}
       <div className="sidebar-footer">
         <button onClick={handleLogout} className="logout-btn">
           <FontAwesomeIcon icon={faRightFromBracket} className="logout-icon" />
