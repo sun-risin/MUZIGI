@@ -18,7 +18,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
       const muzigiToken = localStorage.getItem('accessToken');
       if (!muzigiToken || !spotifyToken) return;
       try {
-        const response = await fetch('http://localhost:5000/api/playlist/new', {
+        const response = await fetch(`${API_BASE_URL}/api/playlist/new`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -84,7 +84,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
 
       if (selectedChatId && token) {
         try {
-          const response = await fetch(`http://localhost:5000/api/chat/${selectedChatId}/messages`, {
+          const response = await fetch(`${API_BASE_URL}/api/chat/${selectedChatId}/messages`, {
             method: 'GET',
             headers: { 'Authorization': `${token}` }
           });

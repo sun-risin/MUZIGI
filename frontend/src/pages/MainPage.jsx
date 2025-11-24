@@ -38,7 +38,7 @@ function MainPage({ setIsLoggedIn }) {
     const promises = emotions.map(async (emotion) => {
       try {
         const engEmotion = moodMap[emotion]; 
-        const response = await fetch(`http://localhost:5000/api/playlist/${engEmotion}/show`, {
+        const response = await fetch(`${API_BASE_URL}/api/playlist/${engEmotion}/show`, {
           method: 'GET',
           headers: { 'Authorization': `${muzigiToken}` }
         });
@@ -107,7 +107,7 @@ function MainPage({ setIsLoggedIn }) {
     const engEmotion = moodMap[track.emotion] || track.emotion;
 
     try { 
-      const response = await fetch(`http://localhost:5000/api/playlist/${engEmotion}/add`, {
+      const response = await fetch(`${API_BASE_URL}/api/playlist/${engEmotion}/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ function MainPage({ setIsLoggedIn }) {
     if (!muzigiToken || !spotifyToken) return;
 
     try {
-      const response = await fetch('http://localhost:5000/api/playlist/new', {
+      const response = await fetch(`${API_BASE_URL}/api/playlist/new`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -180,7 +180,7 @@ function MainPage({ setIsLoggedIn }) {
   const handleEmotionSelect = async (emotion) => {
     try {
       const token = localStorage.getItem('accessToken');
-      const response = await fetch("http://localhost:5000/api/chat/message", {
+      const response = await fetch(`${API_BASE_URL}/api/chat/message`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

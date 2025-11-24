@@ -92,7 +92,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
 
   const handleLogin = () => {
     localStorage.removeItem('spotifyAccessToken'); 
-    window.location.href = 'http://127.0.0.1:5000/api/spotify/auth/login';
+    window.location.href = `${API_BASE_URL}/api/spotify/auth/login`;
   };
 
   return (

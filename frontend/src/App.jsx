@@ -20,7 +20,7 @@ function App() {
     const getSpotifyToken = async () => {
       try {
         // (1) API 명세서에 나온 "토큰 확인" API 호출
-        const response = await fetch('http://127.0.0.1:5000/api/spotify/auth/token', {
+        const response = await fetch(`${API_BASE_URL}/api/spotify/auth/token`, {
           method: 'GET',
           credentials: 'include'
         });
