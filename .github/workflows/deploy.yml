@@ -17,6 +17,7 @@ env:
   SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
   SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
   FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+  BACKEND_CALLBACK_URL: ${{ secrets.BACKEND_CALLBACK_URL }}
 
 jobs:
   deploy:
@@ -39,6 +40,7 @@ jobs:
           echo "SPOTIFY_CLIENT_ID=${{ env.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ env.SPOTIFY_CLIENT_SECRET }}" >> .env
           echo "FRONTEND_URL=${{ env.FRONTEND_URL }}" >> .env
+          echo "BACKEND_CALLBACK_URL=${{ env.BACKEND_CALLBACK_URL }}" >> .env
           echo "FIREBASE_CREDENTIALS_B64=${{ secrets.FIREBASE_CREDENTIALS_B64 }}" >> .env
 
       # AWS 인증 및 S3 업로드 (CD 준비)
