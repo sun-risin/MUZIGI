@@ -8,10 +8,11 @@ echo "[AfterInstall] CodeDeploy가 파일 복사 완료 -> 설치 단계 시작 
 cd "${APP_DIR}"
 
 # GitHub Secrets에 저장된 Firebase Base64 문자열이 존재하면 JSON으로 복원
-if [ -n "${FIREBASE_CREDENTIALS_B64:-}" ]; then
+if [ -n "${{ secrets.FIREBASE_CREDENTIALS_B64 }}" ]; then
   echo "[AfterInstall] FIREBASE_CREDENTIALS_B64 값을 JSON으로 디코딩합니다"
+  
   mkdir -p "${APP_DIR}/firebase"
-  echo "${FIREBASE_CREDENTIALS_B64}" | base64 --decode > "${APP_DIR}/firebase/serviceAccountKey.json"
+  echo "${{ secrets.FIREBASE_CREDENTIALS_B64 }}" | base64 --decode > "${APP_DIR}/firebase/serviceAccountKey.json"
   
   # 권한을 600으로 제한 (보안 목적)
   chmod 600 "${APP_DIR}/firebase/serviceAccountKey.json"
