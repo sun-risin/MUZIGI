@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import './Chat.css';
-import Muzigi from '../../assets/muzigi.png'; 
+import Muzigi from '/Muzigi.png'; 
 import MusicPlayer from './MusicPlayer';
 
 function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTracks }) {

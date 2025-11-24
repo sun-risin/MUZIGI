@@ -106,7 +106,7 @@ function MainPage({ setIsLoggedIn }) {
     
     const engEmotion = moodMap[track.emotion] || track.emotion;
 
-    try {
+    try { 
       const response = await fetch(`http://localhost:5000/api/playlist/${engEmotion}/add`, {
         method: 'POST',
         headers: {
