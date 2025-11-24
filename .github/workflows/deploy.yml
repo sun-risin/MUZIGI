@@ -32,13 +32,14 @@ jobs:
           python-version: '3.10'
           
       - name: Create .env file # 어차피 실사용자 없으니까... 환경변수 파일에 저장
+        working-directory: ${{ github.workspace }}
         run: |
           echo "MUZIGI_JWT_KEY=${{ env.MUZIGI_JWT_KEY }}" >> .env
           echo "FLASK_SECRET_KEY=${{ env.FLASK_SECRET_KEY }}" >> .env
           echo "SPOTIFY_CLIENT_ID=${{ env.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ env.SPOTIFY_CLIENT_SECRET }}" >> .env
           echo "FRONTEND_URL=${{ env.FRONTEND_URL }}" >> .env
-          echo "FIREBASE_CREDENTIALS_B64: ${{ secrets.FIREBASE_CREDENTIALS_B64 }}" >> appspec.yml
+          echo "FIREBASE_CREDENTIALS_B64=${{ secrets.FIREBASE_CREDENTIALS_B64 }}" >> .env
 
       # AWS 인증 및 S3 업로드 (CD 준비)
       - name: Configure AWS credentials 

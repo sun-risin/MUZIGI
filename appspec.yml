@@ -1,9 +1,9 @@
 version: 0.0 # 파일 버전. 현재 이 버전만 지원
 os: linux
 
-environment:
-  variables:
-    FIREBASE_CREDENTIALS_B64: "{{ FIREBASE_CREDENTIALS_B64 }}"
+# environment:
+#   variables:
+#     FIREBASE_CREDENTIALS_B64: "{{ FIREBASE_CREDENTIALS_B64 }}"
 
 files: # 배포할 파일 및 디렉토리 정의
   - source: /
