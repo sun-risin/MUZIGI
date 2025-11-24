@@ -7,6 +7,7 @@ function Login({ setIsLoggedIn }) {
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleLogin = async () => {
     if (!userId || !password) {

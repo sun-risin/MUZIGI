@@ -10,8 +10,8 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
   const isInitialLoad = useRef(true);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
-
-  // 1. 스포티파이 SDK 및 재생목록 초기화
+  API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // 1. 스const포티파이 SDK 및 재생목록 초기화
   useEffect(() => {
     const delay = 2500;
     const createPlaylistsIfNeeded = async (spotifyToken) => {

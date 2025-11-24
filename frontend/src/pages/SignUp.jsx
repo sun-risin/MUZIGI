@@ -8,6 +8,7 @@ function SignUp() {
   const [nickname, setNickname] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const validateForm = () => {
     if (!userId) {

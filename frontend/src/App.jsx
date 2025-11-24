@@ -9,6 +9,7 @@ import MainPage from './pages/MainPage';
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');

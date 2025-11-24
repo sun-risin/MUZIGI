@@ -6,6 +6,7 @@ import './MusicPlayer.css';
 function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, playlistTracks = [] }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const previewTimerRef = useRef(null); 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // 1. 좋아요 상태 판별 (안전하게 처리)
   const isLiked = playlistTracks?.some(item => item.trackId === music.trackId);

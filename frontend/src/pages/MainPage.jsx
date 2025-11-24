@@ -28,6 +28,7 @@ function MainPage({ setIsLoggedIn }) {
   const [messages, setMessages] = useState([]); 
   const [selectedChatId, setSelectedChatId] = useState(null);
   const [playlistTracks, setPlaylistTracks] = useState([]); 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   // 1. 재생목록 조회
   const fetchPlaylists = async () => {
