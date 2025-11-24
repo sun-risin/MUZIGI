@@ -1,0 +1,69 @@
+name: CI/CD - dev - Flask to AWS CodeDeploy
+
+on:
+  push:
+    branches:
+      - dev # dev 브랜치에 푸시될 때 트리거
+  pull_request:
+    branches:
+      - dev
+env:
+  PROJECT_NAME: muzigi-project-flask # 프로젝트 이름, S3 경로 설정에 사용됨
+  BUCKET_NAME: muzigi-flask-bucket  # 생성한 버킷 이름
+  CODE_DEPLOY_APP_NAME: muzigi-flask-codeDeploy-app # 애플리케이션 이름
+  DEPLOYMENT_GROUP_NAME: muzigi-flask-instance # 배포 그룹 이름
+  MUZIGI_JWT_KEY : ${{ secrets.MUZIGI_JWT_KEY }}
+  FLASK_SECRET_KEY: ${{ secrets.FLASK_SECRET_KEY }}
+  SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+  SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+  FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+  # FIREBASE_CREDENTIALS_JSON: ${{ secrets.FIREBASE_CREDENTIALS_JSON }} -> install 스크립트에서 설정
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 빌드 및 테스트 (CI)
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          
+      - name: Create .env file # 어차피 실사용자 없으니까... 환경변수 파일에 저장
+        run: |
+          echo "MUZIGI_JWT_KEY=${{ env.MUZIGI_JWT_KEY }}" >> .env
+          echo "FLASK_SECRET_KEY=${{ env.FLASK_SECRET_KEY }}" >> .env
+          echo "SPOTIFY_CLIENT_ID=${{ env.SPOTIFY_CLIENT_ID }}" >> .env
+          echo "SPOTIFY_CLIENT_SECRET=${{ env.SPOTIFY_CLIENT_SECRET }}" >> .env
+          echo "FRONTEND_URL=${{ env.FRONTEND_URL }}" >> .env
+
+      # AWS 인증 및 S3 업로드 (CD 준비)
+      - name: Configure AWS credentials 
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-northeast-2 
+
+      # ${{ github.sha }}는 GitHub Actions에서 기본 제공하는 환경변수 -> 실행 커밋 해시값
+      - name: Create deployment artifact Zip File #zip 파일 만들기
+        run: |
+          zip -r "${{ github.sha }}.zip" . -x "venv/*" ".git/*" "__pycache__/*" "*.zip" "node_modules/*" ".github/*"
+          ls -lh "${{ github.sha }}.zip"
+
+      - name: Upload artifact to S3
+        run: |
+          aws s3 cp --region ap-northeast-2 ./${{ github.sha }}.zip s3://$BUCKET_NAME/$PROJECT_NAME/${{ github.sha }}.zip
+          
+      # CodeDeploy 트리거 (CD 실행) - aws cli로 작동
+      - name: Code Deploy To EC2 instance
+        run: |
+          aws deploy create-deployment \
+            --application-name ${{ env.CODE_DEPLOY_APP_NAME }} \
+            --deployment-group-name ${{ env.DEPLOYMENT_GROUP_NAME }} \
+            --deployment-config-name CodeDeployDefault.AllAtOnce \
+            --s3-location bucket=${{ env.BUCKET_NAME }},bundleType=zip,key=${{ env.PROJECT_NAME }}/${{ github.sha }}.zip \
+            --description "Deploy from GitHub Actions: ${{ github.sha }}"
