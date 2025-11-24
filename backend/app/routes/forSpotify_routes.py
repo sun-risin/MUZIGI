@@ -17,7 +17,7 @@ load_dotenv()
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 #리다이렉트할 프론트 위치는 /chat임
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173/chat')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
 PORT = int(os.getenv('PORT', 5000))
 BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/api/spotify/auth/callback")
 REDIRECT_URI = BACKEND_CALLBACK_URL
@@ -99,7 +99,7 @@ def spotify_callback():
         session['refresh_token'] = token_data.get('refresh_token')
         
         # --- React 앱의 메인 페이지로 리디렉션 ---
-        return redirect(f"{FRONTEND_URL}?access_token={token_data.get('access_token')}?refresh_token={token_data.get('refresh_token')}")
+        return redirect(f"{FRONTEND_URL}/chat?access_token={token_data.get('access_token')}?refresh_token={token_data.get('refresh_token')}")
         #return redirect("/spoti") # 백엔드 서버 테스트페이지
 
     except requests.exceptions.HTTPError as e:
