@@ -2,7 +2,8 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask
 from flask_cors import CORS
-import json
+import base64
+import tempfile
 import firebase_admin
 from firebase_admin import credentials, initialize_app
 
@@ -33,13 +34,17 @@ def create_app():
     
     # Firebase 초기화 (중복 실행 에러 방지)
     if not firebase_admin._apps:
-        cred_json = os.getenv("FIREBASE_CREDENTIALS_JSON")
-        if cred_json:
-            cred_dict = json.loads(cred_json)
-            cred = credentials.Certificate(cred_dict)
+        firebase_b64 = os.getenv("FIREBASE_CREDENTIALS_B64")
+        if not firebase_b64:
+            raise RuntimeError("FIREBASE_CREDENTIALS_B64 is not set in environment variables")
+        
+        # Base64 → 임시 JSON 파일로 변환
+        decoded = base64.b64decode(firebase_b64)
+        with tempfile.NamedTemporaryFile(mode="w+b", suffix=".json") as f:
+            f.write(decoded)
+            f.flush()  # 파일에 기록 완료
+            cred = credentials.Certificate(f.name)
             initialize_app(cred)
-        else:
-            raise RuntimeError("FIREBASE_CREDENTIALS_JSON env not set")
         
     # --- Blueprint 등록 ---    
     from app.routes import main_route, auth_routes, chat_routes, forSpotify_routes, playlist_routes
