@@ -25,7 +25,7 @@ source "${VENV_DIR}/bin/activate"
 # requirements.txt 있으면 설치
 echo "[AfterInstall] pip 업그레이드 및 requirements.txt 설치..."
 python -m pip install --upgrade pip
-if [ -f "${APP_DIR}/requirements.txt" ]; then
+if [ -f "${APP_DIR}/backend/requirements.txt" ]; then
   pip install -r "${APP_DIR}/backend/requirements.txt"
 else
   echo "[AfterInstall] requirements.txt 없음 — 설치 스킵"
