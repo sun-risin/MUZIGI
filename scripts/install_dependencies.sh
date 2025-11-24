@@ -4,7 +4,7 @@ set -euo pipefail
 APP_DIR="/home/ubuntu/muzigi"
 VENV_DIR="${APP_DIR}/backend/venv"
 
-echo "[AfterInstall] CodeDeploy가 파일 복사 완료 -> 설치 단계 시작 : to ${APP_DIR}"
+echo "[AfterInstall] CodeDeploy가 파일 복사 완료 -> 설치 단계 시작... : to ${APP_DIR}"
 cd "${APP_DIR}"
 
 # GitHub Secrets에 저장된 Firebase Base64 문자열이 존재하면 JSON으로 복원
