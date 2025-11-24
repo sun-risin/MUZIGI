@@ -17,7 +17,6 @@ env:
   SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
   SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
   FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
-  FIREBASE_CREDENTIALS_B64: ${{ secrets.FIREBASE_CREDENTIALS_B64 }}
 
 jobs:
   deploy:
@@ -39,6 +38,7 @@ jobs:
           echo "SPOTIFY_CLIENT_ID=${{ env.SPOTIFY_CLIENT_ID }}" >> .env
           echo "SPOTIFY_CLIENT_SECRET=${{ env.SPOTIFY_CLIENT_SECRET }}" >> .env
           echo "FRONTEND_URL=${{ env.FRONTEND_URL }}" >> .env
+          echo "FIREBASE_CREDENTIALS_B64: ${{ secrets.FIREBASE_CREDENTIALS_B64 }}" >> appspec.yml
 
       # AWS 인증 및 S3 업로드 (CD 준비)
       - name: Configure AWS credentials 
