@@ -8,7 +8,7 @@ app = create_app()
 load_dotenv(find_dotenv())   # .env 파일에서 환경 변수 로드 -> Flask 실행위치 관계 없이 찾게 수정함
 
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
-PORT = int(os.getenv('PORT', 5000)) 
+PORT = int(os.getenv('PORT', 5002)) 
 
 # REDIRECT_URI도 환경 변수를 우선 사용(배포 시), 없으면 개발용 주소 사용
 #   예: 배포 시 https://api.mydomain.com/auth/callback
