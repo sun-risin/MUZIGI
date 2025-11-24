@@ -35,4 +35,4 @@ sudo nginx -t
 # nginx 재시작
 sudo systemctl restart nginx
 
-echo "[ApplicationStart] 모든 서비스가 성공적으로 시작되었습니다."
+echo "[ApplicationStart] 모든 서비스가 성공적으로 시작되었습니다!"
