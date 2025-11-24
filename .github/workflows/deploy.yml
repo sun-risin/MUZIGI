@@ -48,7 +48,7 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-northeast-2 
 
-	  # ${{ github.sha }}는 GitHub Actions에서 기본 제공하는 환경변수 -> 실행 커밋 해시값
+      # ${{ github.sha }}는 GitHub Actions에서 기본 제공하는 환경변수 -> 실행 커밋 해시값
       - name: Create deployment artifact Zip File #zip 파일 만들기
         run: |
           zip -r "${{ github.sha }}.zip" . -x "venv/*" ".git/*" "__pycache__/*" "*.zip" "node_modules/*" ".github/*"
