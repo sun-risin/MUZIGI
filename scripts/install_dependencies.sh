@@ -14,7 +14,7 @@ if [ ! -f "${APP_DIR}/.env" ]; then
     exit 1
 fi
 
-# .env 로부터 환경변수 로드
+# .env 로부터 환경변수 로드하기
 echo "[AfterInstall] .env 환경변수 로드"
 set -o allexport
 source "${APP_DIR}/.env"
