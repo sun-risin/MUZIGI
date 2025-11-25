@@ -100,8 +100,8 @@ def spotify_callback():
         
         # --- React 앱의 메인 페이지로 리디렉션 (쿠키 설정값 지정)
         resp = make_response(redirect(f"{FRONTEND_URL}/chat"))
-        resp.set_cookie("access_token", token_data.get("access_token"), httponly=True, secure=True, samesite='Lax')
-        resp.set_cookie("refresh_token", token_data.get("refresh_token"), httponly=True, secure=True, samesite='Lax')
+        resp.set_cookie("access_token", token_data.get("access_token"), httponly=True, secure=True, samesite='None')
+        resp.set_cookie("refresh_token", token_data.get("refresh_token"), httponly=True, secure=True, samesite='None')
         return resp
 
     except requests.exceptions.HTTPError as e:
