@@ -51,18 +51,20 @@ function App() {
   }
 
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route element={<Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}>
-          {/* <Route path="/" element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} /> */}
-          <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/spotify/callback" element={<SpotifyCallbackHandler />} />
-          <Route path="/chat" element={isLoggedIn ? <MainPage setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />}/>
-        </Route>
-      </Routes>
-    </BrowserRouter>
-  );
+    <BrowserRouter>
+      <Routes>
+        <Route element={<Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}>
+          
+          <Route index element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} /> 
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} /> 
+          
+          <Route path="/spotify/callback" element={<SpotifyCallbackHandler />} />
+          <Route path="/chat" element={isLoggedIn ? <MainPage setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />}/>
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
 }
 
 export default App;
