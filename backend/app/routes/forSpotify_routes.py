@@ -115,13 +115,13 @@ def get_spotify_token():
     HTML(클라이언트)가 현재 로그인 상태를 확인할 수 있도록
     세션에 저장된 토큰을 JSON으로 반환
     """
-    access_token = session.get('access_token')
-    
+    access_token = request.cookies.get('access_token')
+
     if access_token:
         print("Returning token to client.")
         return jsonify({
             "access_token": access_token
-        })
+        }), 200
     else:
         print("No token found in session.")
         return jsonify({
