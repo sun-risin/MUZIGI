@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import string
 import random
 import requests
-from flask import Blueprint, redirect, request, session, jsonify
+from flask import Blueprint, redirect, request, session, jsonify, make_response
 from firebase_admin import firestore
 
 track_blp = Blueprint("track", __name__, url_prefix="/api/spotify")
@@ -98,9 +98,11 @@ def spotify_callback():
         session['access_token'] = token_data.get('access_token')
         session['refresh_token'] = token_data.get('refresh_token')
         
-        # --- React 앱의 메인 페이지로 리디렉션 ---
-        return redirect(f"{FRONTEND_URL}/chat?access_token={token_data.get('access_token')}?refresh_token={token_data.get('refresh_token')}")
-        #return redirect("/spoti") # 백엔드 서버 테스트페이지
+        # --- React 앱의 메인 페이지로 리디렉션 (쿠키 설정값 지정)
+        resp = make_response(redirect(f"{FRONTEND_URL}/chat"))
+        resp.set_cookie("access_token", token_data.get("access_token"), httponly=True, secure=True, samesite='Lax')
+        resp.set_cookie("refresh_token", token_data.get("refresh_token"), httponly=True, secure=True, samesite='Lax')
+        return resp
 
     except requests.exceptions.HTTPError as e:
         return jsonify({"error": "Failed to retrieve token", "details": str(e)}), 500
