@@ -11,17 +11,10 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      setIsLoggedIn(true); 
-      getSpotifyToken();
-    }else{
-      setIsLoading(false);
-    }
-    
+  useEffect(() => {    
     const getSpotifyToken = async () => {
       const muzigiToken = localStorage.getItem('accessToken');
+
       if (!muzigiToken) return;
       try {
         // (1) API 명세서에 나온 "토큰 확인" API 호출
@@ -47,7 +40,13 @@ function App() {
         console.error("Spotify 토큰 API 통신 실패:", error);
       }
     };
-
+    
+    const token = localStorage.getItem('accessToken');
+    if(token){
+      setIsLoggedIn(true);
+    }
+    setIsLoading(false);
+    
     getSpotifyToken(); // 앱 시작 시 Spotify 토큰 받아오기 시도
 
   }, []); // [] : 앱 시작 시 한 번만 실행
