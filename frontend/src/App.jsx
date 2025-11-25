@@ -5,6 +5,7 @@ import Layout from './components/layout/Layout';
 import Login from './pages/Login'; 
 import SignUp from './pages/SignUp';
 import MainPage from './pages/MainPage';
+import SpotifyCallbackHandler from './pages/SpotifyCallbackHandler';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -56,6 +57,7 @@ function App() {
           <Route path="/" element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} />
           <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
           <Route path="/signup" element={<SignUp />} />
+          <Route path="/spotify/callback" element={<SpotifyCallbackHandler />} />
           <Route path="/chat" element={isLoggedIn ? <MainPage setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />}/>
         </Route>
       </Routes>
