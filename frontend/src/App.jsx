@@ -15,8 +15,10 @@ function App() {
     const token = localStorage.getItem('accessToken');
     if (token) {
       setIsLoggedIn(true); 
+      getSpotifyToken();
+    }else{
+      setIsLoading(false);
     }
-    setIsLoading(false);
     
     const getSpotifyToken = async () => {
       const muzigiToken = localStorage.getItem('accessToken');
