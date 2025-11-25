@@ -18,7 +18,7 @@ function App() {
       setIsLoggedIn(true); 
     }
     setIsLoading(false);
-
+    
     const getSpotifyToken = async () => {
       try {
         // (1) API 명세서에 나온 "토큰 확인" API 호출
