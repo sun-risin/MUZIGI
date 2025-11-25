@@ -5,7 +5,7 @@ import Layout from './components/layout/Layout';
 import Login from './pages/Login'; 
 import SignUp from './pages/SignUp';
 import MainPage from './pages/MainPage';
-import SpotifyCallbackHandler from './pages/SpotifyCallbackHandler';
+import SpotifyCallbackHandler from './pages/SpotifyCallback';
 
 function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
