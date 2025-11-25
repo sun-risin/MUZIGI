@@ -22,7 +22,6 @@ const engToKor = {
   "nervous": "긴장"
 };
 
-
 function MainPage({ setIsLoggedIn }) { 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [messages, setMessages] = useState([]); 
