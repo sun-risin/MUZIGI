@@ -54,7 +54,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}>
-          <Route path="/" element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} />
+          {/* <Route path="/" element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} /> */}
           <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/spotify/callback" element={<SpotifyCallbackHandler />} />
