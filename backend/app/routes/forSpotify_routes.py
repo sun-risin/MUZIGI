@@ -7,7 +7,7 @@ import requests
 from flask import Blueprint, redirect, request, session, jsonify
 from firebase_admin import firestore
 
-track_blp = Blueprint("track", __name__)
+track_blp = Blueprint("track", __name__, url_prefix="/api/spotify")
 db = firestore.client()
 
 
@@ -18,7 +18,7 @@ SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 #리다이렉트할 프론트 위치는 /chat임
 FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
-PORT = int(os.getenv('PORT', 5002))
+PORT = int(os.getenv('PORT', 5000))
 BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/api/spotify/auth/callback")
 REDIRECT_URI = BACKEND_CALLBACK_URL
 
@@ -35,7 +35,7 @@ def generate_random_string(length):
 
 # 사용자를 Spotify 로그인 페이지로 보냄(리디렉션)
 # 승인 코드를 받아 사용자 승인 요청.
-@track_blp.route("/api/spotify/auth/login", methods=["GET"])
+@track_blp.route("/auth/login", methods=["GET"])
 def spotify_login():
     state = generate_random_string(16)
     session['spotify_state'] = state
@@ -57,7 +57,7 @@ def spotify_login():
 
 # Spotify에서 받은 정보로 토큰을 세션에 저장, 본 페이지로 리디렉션
 # 이전 단계에서 요청한 승인 코드 사용해 액세스 토큰 요청
-@track_blp.route(":5002/api/spotify/auth/callback", methods=["GET"])
+@track_blp.route("/auth/callback", methods=["GET"])
 def spotify_callback():
     """
     /auth/callback 엔드포인트:
