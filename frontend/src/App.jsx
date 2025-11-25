@@ -19,6 +19,8 @@ function App() {
     setIsLoading(false);
     
     const getSpotifyToken = async () => {
+      const muzigiToken = localStorage.getItem('accessToken');
+      if (!muzigiToken) return;
       try {
         // (1) API 명세서에 나온 "토큰 확인" API 호출
         const response = await fetch(`${API_BASE_URL}/api/spotify/auth/token`, {
