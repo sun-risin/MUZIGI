@@ -204,19 +204,24 @@ def spotify_getItems(spotifyToken, playlist_id):
 
 # --- DB 관련 함수 
 # DB에서 사용자가 갖고 있는 재생목록 가져오기 - spotify에는 이제 없는 재생목록 정보가 있을 수 있음
+# userDoc에서 playlist id들 가져온 다음에 그 문서들이 Playlist 컬렉션에도 있는지 확인
 def DB_checkPlaylist(userDocId):
     playlists_info = {}
     
     try:
-        playlist_ref = db.collection("Playlist").where("userDocId", "==", userDocId)
-        playlists = playlist_ref.stream()
+        user_ref = db.collection("users").document(userDocId)
+        user_doc = user_ref.get()
+        if not user_doc.exists: 
+            raise PermissionError("유효하지 않은 사용자입니다.")
         
-        for play in playlists:
-            data = play.to_dict()
-            emotionName = data["emotionName"]
-            playlistDocId = data["playlistId"]
-            
-            playlists_info[emotionName] = playlistDocId
+        user_playlistIds = user_doc.get("playlistIds")
+        
+        for playlistDocId in user_playlistIds.values():
+            playlist_ref = db.collection("Playlist").document(playlistDocId)
+            playlist_doc = playlist_ref.get()
+            if playlist_doc.exists: 
+                emotionName = playlist_doc.get("emotionName")         
+                playlists_info[emotionName] = playlistDocId
         
     except Exception : raise
     
@@ -232,7 +237,6 @@ def DB_update(new_playlists_info, userDocId):
             new_data = {
                 "emotionName" : f"{emo}", 
                 "playlistId":  new_playli.id,
-                "userDocId" : userDocId,
                 "tracks" : {}
             }
             playli_db_errors = playlist_schema.validate(new_data) # schema로 유효성 검사

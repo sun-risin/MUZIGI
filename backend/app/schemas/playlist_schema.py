@@ -8,7 +8,6 @@ class TrackInfoSchema(Schema):
 class PlaylistSchema(Schema):
     emotionName = fields.String(required=True)
     playlistId = fields.String(required=True)
-    userDocId = fields.String(required=True)
     tracks = fields.Dict(
         keys=fields.String(),       # position (문자열)
         values=fields.Nested(TrackInfoSchema)    # trackInfo 객체
