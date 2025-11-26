@@ -116,7 +116,7 @@ def spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name):
     
 # 재생목록 가져오기 API - spotify에서 재생목록 존재 여부 확인
 # 존재하는 재생목록 정보값 반환 (DB에는 없는 게 있다면 따로 저장해 반환)
-def spotify_getUserPlaylist(spotifyToken):
+def spotify_getUserPlaylist(spotifyToken, userDocId):
     exist_playlists_info = {} # spotify, DB에 있는 재생목록
     no_db_playlists_info = {} # spotify에 있고, DB에는 없는 재생목록
     
@@ -134,6 +134,12 @@ def spotify_getUserPlaylist(spotifyToken):
         for item in curr_playlists:
             description = item.get("description")  # 뮤지기 관련 플리만 고정 패턴
             item_id = item.get("id")               # 뮤지기 관련 플리 id
+            user_ref = db.collection("users").document(userDocId)
+            user_doc = user_ref.get()
+            if not user_doc.exists: 
+                raise PermissionError("유효하지 않은 사용자입니다.")
+                            
+            user_playlistIds = user_doc.get("playlistIds") or {} # 내용 없을 수도 있음
             
             # description 패턴 기반 역매핑
             for eng, kor in emotions_mapping.items():
@@ -145,6 +151,11 @@ def spotify_getUserPlaylist(spotifyToken):
                             no_db_playlists_info[eng] = item_id
                         else:
                             exist_playlists_info[eng] = item_id
+                            
+                            if item_id not in user_playlistIds.values():
+                                user_ref.update({ # 수정 (없었다면 추가됨)
+                                    f"playlistIds.{eng}": item_id
+                                })
                             
                     except Exception: raise # 뮤지기쪽 오류
                 
