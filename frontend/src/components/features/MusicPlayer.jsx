@@ -37,10 +37,35 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       return;
     }
 
- // ★ 재생: play API로 바로 트랙 재생
+// ★ 재생: transfer 후 play
 try {
+  // 1) 먼저 디바이스를 활성화
+  const transferRes = await fetch(
+    `https://api.spotify.com/v1/me/player`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_ids: [deviceId],
+        play: false
+      })
+    }
+  );
+
+  if (!transferRes.ok) {
+    const err = await transferRes.json();
+    console.error("Transfer API 오류:", err);
+    throw new Error("Transfer API 실패 " + transferRes.status);
+  }
+
+  console.log("Transfer 성공 → active player 설정됨");
+
+  // 2) 이제 곡 재생
   const playRes = await fetch(
-    `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+    `https://api.spotify.com/v1/me/player/play`,
     {
       method: 'PUT',
       headers: {
@@ -60,10 +85,9 @@ try {
   }
 
   console.log("Play API 성공");
-
   setIsPlaying(true);
 
-  // 30초 미리듣기
+  // 30초 미리듣기 타이머
   previewTimerRef.current = setTimeout(() => {
     if (window.SpotifyPlayerInstance) {
       window.SpotifyPlayerInstance.pause();
@@ -77,6 +101,7 @@ try {
   console.error("재생 실패:", error);
   setIsPlaying(false);
 }
+
 
   };
 
