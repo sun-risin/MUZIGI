@@ -1,123 +1,97 @@
 import React, { useState, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlay, faPause, faSpinner, faHeart } from '@fortawesome/free-solid-svg-icons';
+import { faPlay, faPause, faSpinner, faHeart } from '@fortawesome/free-solid-svg-icons'; 
 import './MusicPlayer.css';
 
 function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, playlistTracks = [] }) {
   const [isPlaying, setIsPlaying] = useState(false);
-  const previewTimerRef = useRef(null);
-
+  const previewTimerRef = useRef(null); 
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
+  // 1. 좋아요 상태 판별 (안전하게 처리)
   const isLiked = playlistTracks?.some(item => item.trackId === music.trackId);
 
-  /** ---------------------------------------------------------
-   *  🎯 Spotify 필수 단계: 재생 전 transferPlayback
-   * ---------------------------------------------------------*/
-  const transferPlayback = async (token, deviceId) => {
-    const res = await fetch(`${API_BASE_URL}/api/spotify/transfer`, {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        device_ids: [deviceId],
-        play: false
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.json();
-      console.error("TransferPlayback 오류:", err);
-      throw new Error("TransferPlayback 실패 " + res.status);
-    }
-
-    console.log("TransferPlayback 성공 → 이 디바이스가 active됨!");
-  };
-
-  /** ---------------------------------------------------------
-   *  🎵 재생 / 일시정지
-   * ---------------------------------------------------------*/
+  // 2. 재생/일시정지 로직
   const handlePlayPause = async () => {
-    const token = localStorage.getItem('spotifyAccessToken');
-    const player = window.SpotifyPlayerInstance;
-
-    if (!player || !isPlayerReady || !deviceId || !token) {
-      console.warn("플레이어 준비 안됨 / deviceId 없음 / 토큰 없음");
-      return;
-    }
-
-    // 1) 기존 타이머 클리어
     if (previewTimerRef.current) {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
+    const token = localStorage.getItem('spotifyAccessToken');
+    const player = window.SpotifyPlayerInstance;
 
-    // 2) 일시정지
+    if (!player || !isPlayerReady || !deviceId || !token) {
+      console.warn("플레이어 준비 안됨, deviceId 또는 토큰 없음");
+      return;
+    }
+
     if (isPlaying) {
       try {
         await player.pause();
         setIsPlaying(false);
-        console.log("일시정지 성공");
+        console.log("수동 일시정지 성공");
       } catch (e) {
-        console.error("일시정지 실패:", e);
+        console.error("수동 일시정지 실패:", e);
+        setIsPlaying(false);
       }
-      return;
-    }
-
-    // ▶ 3) 재생
-    try {
-      // 3-1) 재생 전 반드시 active device 설정
-      await transferPlayback(token, deviceId);
-
-      // 3-2) 즉시 Play API 호출 (트랙 직접 재생)
-      const playRes = await fetch(`${API_BASE_URL}/api/spotify/play`, {
-        method: 'PUT',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          uris: [`spotify:track:${music.trackId}`]
-        })
-      });
-
-      if (!playRes.ok) {
-        const err = await playRes.json();
-        console.error("Play API 오류:", err);
-        throw new Error("Play API 실패 " + playRes.status);
-      }
-
-      console.log("Play API 성공");
-
-      setIsPlaying(true);
-
-      // 30초 미리듣기
-      previewTimerRef.current = setTimeout(() => {
-        if (window.SpotifyPlayerInstance) {
-          window.SpotifyPlayerInstance.pause();
-          setIsPlaying(false);
-          previewTimerRef.current = null;
+    } else {
+      try {
+        // [참고] deviceId 앞에 URL 변수 처리가 올바르게 되도록 수정됨
+        const response = await fetch(
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`, 
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              uris: [`spotify:track:${music.trackId}`],
+              position_ms: 0,
+            }),
+          }
+        );
+        
+        if (!response.ok) {
+          const errorBody = await response.json();
+          console.error('Spotify API 오류 본문:', errorBody); 
+          throw new Error(`Spotify API failed with status ${response.status}`);
         }
-        console.log("30초 미리듣기 자동 종료");
-      }, 30000);
 
-    } catch (error) {
-      console.error("재생 실패:", error);
-      setIsPlaying(false);
+        setIsPlaying(true);
+        console.log("수동 재생 시작");
+
+        previewTimerRef.current = setTimeout(() => {
+          if (window.SpotifyPlayerInstance) {
+            window.SpotifyPlayerInstance.pause();
+            setIsPlaying(false);
+            previewTimerRef.current = null;
+            console.log("30초 미리듣기 타이머 종료");
+          }
+        }, 30000);
+
+      } catch (error) {
+        console.error("Spotify 재생 API 호출 실패:", error);
+        setIsPlaying(false);
+      }
     }
   };
 
-  /** ---------------------------------------------------------
-   *  👍 좋아요 기능
-   * ---------------------------------------------------------*/
+  // 3. 좋아요 버튼 클릭 핸들러
   const handleLike = () => {
-    if (isLiked) return;
-    onToggleLike({ ...music, emotion });
+    // [핵심] 이미 좋아요 상태라면 아무것도 하지 않음 (취소 불가)
+    if (isLiked) {
+      console.log("이미 좋아요한 곡입니다. (변화 없음)");
+      return; 
+    }
+    
+    // 좋아요가 아닐 때만 API 호출
+    onToggleLike({ ...music, emotion: emotion });
+    console.log(`${music.title} - 좋아요 요청! (${emotion})`);
   };
 
   const handleLogin = () => {
-    localStorage.removeItem('spotifyAccessToken');
+    localStorage.removeItem('spotifyAccessToken'); 
     window.location.href = `${API_BASE_URL}/api/spotify/auth/login`;
   };
 
@@ -142,6 +116,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
           <button
             type="button"
             onClick={handleLike}
+            // 이미 좋아요 상태면 'liked' 클래스가 붙어 색이 변함 (CSS 확인 필요)
             className={`like-btn ${isLiked ? 'liked' : ''}`}
           >
             <FontAwesomeIcon icon={faHeart} />
