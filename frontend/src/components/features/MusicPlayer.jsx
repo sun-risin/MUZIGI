@@ -14,7 +14,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
    *  🎯 Spotify 필수 단계: 재생 전 transferPlayback
    * ---------------------------------------------------------*/
   const transferPlayback = async (token, deviceId) => {
-    const res = await fetch(`https://api.spotify.com/v1/me/player`, {
+    const res = await fetch(`${API_BASE_URL}/api/spotify/transfer`, {
       method: "PUT",
       headers: {
         Authorization: `Bearer ${token}`,
@@ -71,7 +71,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       await transferPlayback(token, deviceId);
 
       // 3-2) 즉시 Play API 호출 (트랙 직접 재생)
-      const playRes = await fetch(`https://api.spotify.com/v1/me/player/play`, {
+      const playRes = await fetch(`${API_BASE_URL}/api/spotify/play`, {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${token}`,
