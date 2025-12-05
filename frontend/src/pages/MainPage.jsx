@@ -173,6 +173,19 @@ function MainPage({ setIsLoggedIn }) {
     if (initialChatId) setSelectedChatId(initialChatId);
   }, []);
 
+  // 자동 재생목록 로직
+  useEffect(()=>{
+    const intervailId = setInterval(()=>{
+      const spotifyToken = localStorage.getItem('spotifyAccessToken');
+
+      if (spotifyToken&&playlistTracks.length===0){
+        fetchPlaylists();
+        clearInterval(intervailId);
+      }
+    },200);
+    return ()=>clearInterval(intervailId);
+  },[playlistTracks]);
+
   // 감정 선택
   const handleEmotionSelect = async (emotion) => {
     try {
