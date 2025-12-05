@@ -79,7 +79,7 @@ function MainPage({ setIsLoggedIn }) {
     if (isAlreadyLiked) return;
 
     if (!track.emotion) {
-      console.error("❌ 오류: 감정 정보(emotion)가 없습니다.", track);
+      console.error("오류: 감정 정보(emotion)가 없습니다.", track);
       alert("이 곡의 감정 정보를 찾을 수 없어 좋아요를 누를 수 없습니다.");
       return;
     }
@@ -173,7 +173,7 @@ function MainPage({ setIsLoggedIn }) {
     if (initialChatId) setSelectedChatId(initialChatId);
   }, []);
 
-  // 자동 재생목록 로직
+  // 5. 자동 재생목록 로직
   useEffect(()=>{
     const intervailId = setInterval(()=>{
       const spotifyToken = localStorage.getItem('spotifyAccessToken');
@@ -186,7 +186,7 @@ function MainPage({ setIsLoggedIn }) {
     return ()=>clearInterval(intervailId);
   },[playlistTracks]);
 
-  // 감정 선택
+  // 6. 감정 선택
   const handleEmotionSelect = async (emotion) => {
     try {
       const token = localStorage.getItem('accessToken');

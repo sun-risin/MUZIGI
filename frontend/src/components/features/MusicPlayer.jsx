@@ -17,7 +17,6 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
-
     const token = localStorage.getItem('spotifyAccessToken');
     const player = window.SpotifyPlayerInstance;
 
