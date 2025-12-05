@@ -71,14 +71,9 @@ function App() {
         <BrowserRouter>
             <Routes>
                 <Route element={<Layout isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />}>
-                    {/* 기본 경로 Fix */}
                     <Route index element={isLoggedIn ? <Navigate to="/chat" replace /> : <Navigate to="/login" replace />} /> 
-                    
-                    {/* Login/Signup Route */}
                     <Route path="/signup" element={<SignUp />} />
                     <Route path="/login" element={<Login setIsLoggedIn={setIsLoggedIn} />} /> 
-                    
-                    {/* Chat Route */}
                     <Route path="/chat" element={isLoggedIn ? <MainPage setIsLoggedIn={setIsLoggedIn} /> : <Navigate to="/login" replace />}/>
                 </Route>
             </Routes>
