@@ -37,10 +37,10 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       return;
     }
 
-    // ★ 재생: play API로 바로 트랙 재생
+ // ★ 재생: play API로 바로 트랙 재생
 try {
   const playRes = await fetch(
-    `https://api.spotify.com/v1/me/player/play`,
+    `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
     {
       method: 'PUT',
       headers: {
@@ -48,8 +48,7 @@ try {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        device_id: deviceId,
-        uris: [`spotify:track:${music.trackId}`]   // ★ 바로 재생할 곡 지정
+        uris: [`spotify:track:${music.trackId}`]
       })
     }
   );
