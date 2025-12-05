@@ -37,45 +37,48 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       return;
     }
 
-    // ★ 재생: queue 추가 → resume()
-    try {
-      const queueRes = await fetch(
-        `https://api.spotify.com/v1/me/player/queue?uri=spotify:track:${music.trackId}&device_id=${deviceId}`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          }
-        }
-      );
-
-      if (!queueRes.ok) {
-        const err = await queueRes.json();
-        console.error("Queue API 오류:", err);
-        throw new Error("Queue API 실패 " + queueRes.status);
-      }
-
-      console.log("Queue 추가 성공");
-
-      // SDK 재생
-      await player.resume();
-      setIsPlaying(true);
-      console.log("SDK 재생 성공");
-
-      // 30초 미리듣기
-      previewTimerRef.current = setTimeout(() => {
-        if (window.SpotifyPlayerInstance) {
-          window.SpotifyPlayerInstance.pause();
-          setIsPlaying(false);
-          previewTimerRef.current = null;
-        }
-        console.log("30초 미리듣기 자동종료");
-      }, 30000);
-
-    } catch (error) {
-      console.error("재생 실패:", error);
-      setIsPlaying(false);
+    // ★ 재생: play API로 바로 트랙 재생
+try {
+  const playRes = await fetch(
+    `https://api.spotify.com/v1/me/player/play`,
+    {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        device_id: deviceId,
+        uris: [`spotify:track:${music.trackId}`]   // ★ 바로 재생할 곡 지정
+      })
     }
+  );
+
+  if (!playRes.ok) {
+    const err = await playRes.json();
+    console.error("Play API 오류:", err);
+    throw new Error("Play API 실패 " + playRes.status);
+  }
+
+  console.log("Play API 성공");
+
+  setIsPlaying(true);
+
+  // 30초 미리듣기
+  previewTimerRef.current = setTimeout(() => {
+    if (window.SpotifyPlayerInstance) {
+      window.SpotifyPlayerInstance.pause();
+      setIsPlaying(false);
+      previewTimerRef.current = null;
+    }
+    console.log("30초 미리듣기 자동종료");
+  }, 30000);
+
+} catch (error) {
+  console.error("재생 실패:", error);
+  setIsPlaying(false);
+}
+
   };
 
   // 💛 좋아요 기능
