@@ -1,253 +1,242 @@
 import React, { useState, useEffect } from 'react';
-
 import Chat from '../components/features/Chat';
 import Emotion from '../components/features/Emotion';
 import Sidebar from '../components/layout/Sidebar';
-
 import './MainPage.css';
-
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faBars } from '@fortawesome/free-solid-svg-icons';
 
 const moodMap = {
-  "행복": "happiness",
-  "신남": "excited",
-  "화남": "aggro",
-  "슬픔": "sorrow",
-  "긴장": "nervous"
+  "행복": "happiness",
+  "신남": "excited",
+  "화남": "aggro",
+  "슬픔": "sorrow",
+  "긴장": "nervous"
 };
 
 const engToKor = {
-  "happiness": "행복",
-  "excited": "신남",
-  "aggro": "화남",
-  "sorrow": "슬픔",
-  "nervous": "긴장"
+  "happiness": "행복",
+  "excited": "신남",
+  "aggro": "화남",
+  "sorrow": "슬픔",
+  "nervous": "긴장"
 };
 
-function MainPage({ setIsLoggedIn }) {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [selectedChatId, setSelectedChatId] = useState(null);
-  const [playlistTracks, setPlaylistTracks] = useState([]);
+function MainPage({ setIsLoggedIn }) { 
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [messages, setMessages] = useState([]); 
+  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [playlistTracks, setPlaylistTracks] = useState([]); 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  // 1. 재생목록 조회
+  const fetchPlaylists = async () => {
+    const muzigiToken = localStorage.getItem('accessToken');
+    if (!muzigiToken) return;
+    const emotions = ['행복', '신남', '화남', '슬픔', '긴장'];
+    
+    const promises = emotions.map(async (emotion) => {
+      try {
+        const engEmotion = moodMap[emotion]; 
+        const response = await fetch(`${API_BASE_URL}/api/playlist/${engEmotion}/show`, {
+          method: 'GET',
+          headers: { 'Authorization': `${muzigiToken}` }
+        });
 
-  // 1. 재생목록 조회
-  const fetchPlaylists = async () => {
-    const muzigiToken = localStorage.getItem('accessToken');
-    if (!muzigiToken) return;
+        if (response.ok) {
+          const data = await response.json();
+          if (data.tracks) {
+            return Object.values(data.tracks).map(track => ({
+              title: track.title,
+              artist: track.artist,
+              trackId: track.trackId,
+              emotion: emotion
+            }));
+          }
+        } 
+        return [];
+      } catch (error) {
+        return [];
+      }
+    });
 
-    const emotions = ['행복', '신남', '화남', '슬픔', '긴장'];
+    try {
+      const results = await Promise.all(promises);
+      const allTracks = results.flat();
+      const uniqueTracks = allTracks.filter((v, i, a) => a.findIndex(t => (t.trackId === v.trackId)) === i);
+      
+      setPlaylistTracks(prev => {
+         if (uniqueTracks.length === 0 && prev.length > 0) return prev;
+         return uniqueTracks;
+      });
+    } catch (e) {
+      console.error("재생목록 로드 실패");
+    }
+  };
 
-    const promises = emotions.map(async (emotion) => {
-      try {
-        const engEmotion = moodMap[emotion];
-        const response = await fetch(`${API_BASE_URL}/api/playlist/${engEmotion}/show`, {
-          method: 'GET',
-          headers: { 'Authorization': `${muzigiToken}` }
-        });
+  // 2. 좋아요 기능
+  const handleToggleLike = async (track) => {
+    const isAlreadyLiked = playlistTracks.some(item => item.trackId === track.trackId);
+    if (isAlreadyLiked) return; 
 
-        if (response.ok) {
-          const data = await response.json();
-          if (data.tracks) {
-            return Object.values(data.tracks).map(track => ({
-              title: track.title,
-              artist: track.artist,
-              trackId: track.trackId,
-              emotion: emotion
-            }));
-          }
-        }
-        return [];
-      } catch (error) {
-        return [];
-      }
-    });
+    if (!track.emotion) {
+      console.error("❌ 오류: 감정 정보(emotion)가 없습니다.", track);
+      alert("이 곡의 감정 정보를 찾을 수 없어 좋아요를 누를 수 없습니다.");
+      return;
+    }
 
-    try {
-      const results = await Promise.all(promises);
-      const allTracks = results.flat();
-      const uniqueTracks = allTracks.filter((v, i, a) => a.findIndex(t => (t.trackId === v.trackId)) === i);
+  const uiEmotion = engToKor[track.emotion] || track.emotion;
 
-      setPlaylistTracks(prev => {
-        if (uniqueTracks.length === 0 && prev.length > 0) return prev;
-        return uniqueTracks;
-      });
-    } catch (e) {
-      console.error("재생목록 로드 실패");
-    }
-  };
+    console.log(`좋아요 클릭: ${track.title} (화면용: ${uiEmotion})`);
 
-  // 2. 좋아요 기능
-  const handleToggleLike = async (track) => {
-    const isAlreadyLiked = playlistTracks.some(item => item.trackId === track.trackId);
-    if (isAlreadyLiked) return;
+    const newTrack = {
+      title: track.title,
+      artist: track.artist,
+      trackId: track.trackId,
+      emotion: uiEmotion 
+    };
 
-    if (!track.emotion) {
-      console.error("❌ 오류: 감정 정보(emotion)가 없습니다.", track);
-      alert("이 곡의 감정 정보를 찾을 수 없어 좋아요를 누를 수 없습니다.");
-      return;
-    }
+    setPlaylistTracks(prev => {
+      if (prev.some(t => t.trackId === newTrack.trackId)) return prev;
+      return [...prev, newTrack];
+    });
 
-    const uiEmotion = engToKor[track.emotion] || track.emotion;
+    const muzigiToken = localStorage.getItem('accessToken');
+    const spotifyToken = localStorage.getItem('spotifyAccessToken');
+    
+    const engEmotion = moodMap[track.emotion] || track.emotion;
 
-    console.log(`좋아요 클릭: ${track.title} (화면용: ${uiEmotion})`);
+    try { 
+      const response = await fetch(`${API_BASE_URL}/api/playlist/${engEmotion}/add`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${muzigiToken}`
+        },
+        body: JSON.stringify({
+          spotifyToken: spotifyToken,
+          trackInfo: { 
+            title: track.title,
+            artist: track.artist,
+            trackId: track.trackId
+          }
+        })
+      });
 
-    const newTrack = {
-      title: track.title,
-      artist: track.artist,
-      trackId: track.trackId,
-      emotion: uiEmotion
-    };
+      if (!response.ok) {
+        throw new Error("서버 저장 실패");
+      }
+    } catch (error) {
+      console.error("좋아요 실패, 되돌립니다.", error);
+      setPlaylistTracks(prev => prev.filter(t => t.trackId !== track.trackId));
+      alert("오류가 발생해 좋아요가 취소되었습니다.");
+    }
+  };
 
-    setPlaylistTracks(prev => {
-      if (prev.some(t => t.trackId === newTrack.trackId)) return prev;
-      return [...prev, newTrack];
-    });
+  // 3. 재생목록 생성 API 호출
+  const callNewPlaylist = async (spotifyToken) => {
+    const muzigiToken = localStorage.getItem('accessToken'); 
+    if (!muzigiToken || !spotifyToken) return;
 
-    const muzigiToken = localStorage.getItem('accessToken');
-    const spotifyToken = localStorage.getItem('spotifyAccessToken');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/playlist/new`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${muzigiToken}`
+        },
+        body: JSON.stringify({ 'spotifyToken': spotifyToken })
+      });
 
-    const engEmotion = moodMap[track.emotion] || track.emotion;
+      if (response.ok) { 
+        console.log("재생목록 준비 완료");
+      }
+    } catch (error) {
+      console.error("재생목록 생성 연결 실패");
+    }
+  };
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/playlist/${engEmotion}/add`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${muzigiToken}`
-        },
-        body: JSON.stringify({
-          spotifyToken: spotifyToken,
-          trackInfo: {
-            title: track.title,
-            artist: track.artist,
-            trackId: track.trackId
-          }
-        })
-      });
+  // 4. 초기 실행
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const accessToken = params.get('access_token');
 
-      if (!response.ok) {
-        throw new Error("서버 저장 실패");
-      }
-    } catch (error) {
-      console.error("좋아요 실패, 되돌립니다.", error);
-      setPlaylistTracks(prev => prev.filter(t => t.trackId !== track.trackId));
-      alert("오류가 발생해 좋아요가 취소되었습니다.");
-    }
-  };
+    if (accessToken) {
+      localStorage.setItem('spotifyAccessToken', accessToken);
+      window.history.pushState({}, document.title, window.location.pathname);
+      callNewPlaylist(accessToken); 
+      fetchPlaylists(); 
+    } else if (localStorage.getItem('spotifyAccessToken')) {
+      fetchPlaylists();
+    }
+  }, []); 
 
-  // 3. 재생목록 생성 API 호출
-  const callNewPlaylist = async (spotifyToken) => {
-    const muzigiToken = localStorage.getItem('accessToken');
-    if (!muzigiToken || !spotifyToken) return;
+  useEffect(() => {
+    const initialChatId = localStorage.getItem('chatId');
+    if (initialChatId) setSelectedChatId(initialChatId);
+  }, []);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/playlist/new`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${muzigiToken}`
-        },
-        body: JSON.stringify({ 'spotifyToken': spotifyToken })
-      });
+  // 감정 선택
+  const handleEmotionSelect = async (emotion) => {
+    try {
+      const token = localStorage.getItem('accessToken');
+      const response = await fetch(`${API_BASE_URL}/api/chat/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `${token}`
+        },
+        body: JSON.stringify({ emotionName: emotion })
+      });
 
-      if (response.ok) {
-        console.log("재생목록 준비 완료");
-      }
-    } catch (error) {
-      console.error("재생목록 생성 연결 실패");
-    }
-  };
+      if (!response.ok) throw new Error('서버 응답 실패');
+      const data = await response.json();
 
-  // 4. 초기 실행
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const accessToken = params.get('access_token');
+      const newUserMessage = { senderType: true, content: data.user };
+      const botMessage = { 
+        senderType: false, 
+        content: data.MUZIGI, 
+        recommendTracks: data.recommendTracks, 
+        emotion: emotion  
+      };
+      setMessages(prev => [...prev, newUserMessage, botMessage]);
+    } catch (error) {
+      console.error("API 오류:", error);
+      setMessages(prev => [...prev, { senderType: false, content: '오류가 발생했습니다.' }]);
+    }
+  };
 
-    if (accessToken) {
-      localStorage.setItem('spotifyAccessToken', accessToken);
-      window.history.pushState({}, document.title, window.location.pathname);
-      callNewPlaylist(accessToken);
-      fetchPlaylists();
-    } else if (localStorage.getItem('spotifyAccessToken')) {
-      fetchPlaylists();
-    }
-  }, []);
+  return (
+    <div className="main-page-container">
+      <div className={`content-area ${isSidebarOpen ? 'sidebar-open' : ''}`}>
+        <div className="chat-wrapper">
+          <Chat 
+            selectedChatId={selectedChatId}
+            messages={messages}
+            setMessages={setMessages}
+            onToggleLike={handleToggleLike} 
+            playlistTracks={playlistTracks} 
+          />
+        </div>
+        <div className="emotion-wrapper">
+          <Emotion onEmotionSelect={handleEmotionSelect} />
+        </div>
+      </div>
 
-  useEffect(() => {
-    const initialChatId = localStorage.getItem('chatId');
-    if (initialChatId) setSelectedChatId(initialChatId);
-  }, []);
+      <Sidebar
+        isOpen={isSidebarOpen}
+        setIsOpen={setIsSidebarOpen}
+        setIsLoggedIn={setIsLoggedIn}
+        playlistTracks={playlistTracks}
+      />
 
-  // 감정 선택
-  const handleEmotionSelect = async (emotion) => {
-    try {
-      const token = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_BASE_URL}/api/chat/message`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `${token}`
-        },
-        body: JSON.stringify({ emotionName: emotion })
-      });
-
-      if (!response.ok) throw new Error('서버 응답 실패');
-      const data = await response.json();
-
-      const newUserMessage = { senderType: true, content: data.user };
-      const botMessage = {
-        senderType: false,
-        content: data.MUZIGI,
-        recommendTracks: data.recommendTracks,
-        emotion: emotion
-      };
-      setMessages(prev => [...prev, newUserMessage, botMessage]);
-    } catch (error) {
-      console.error("API 오류:", error);
-      setMessages(prev => [...prev, { senderType: false, content: '오류가 발생했습니다.' }]);
-    }
-  };
-
-  return (
-    <div className="main-page-container">
-
-      <div className={`content-area ${isSidebarOpen ? 'sidebar-open' : ''}`}>
-        <div className="chat-wrapper">
-          <Chat
-            selectedChatId={selectedChatId}
-            messages={messages}
-            setMessages={setMessages}
-            onToggleLike={handleToggleLike}
-            playlistTracks={playlistTracks}
-          />
-        </div>
-
-        <div className="emotion-wrapper">
-          <Emotion onEmotionSelect={handleEmotionSelect} />
-        </div>
-      </div>
-
-      <Sidebar
-        isOpen={isSidebarOpen}
-        setIsOpen={setIsSidebarOpen}
-        setIsLoggedIn={setIsLoggedIn}
-        playlistTracks={playlistTracks}
-      />
-
-      {!isSidebarOpen && (
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className='sidebar-open-btn'
-        >
-          <FontAwesomeIcon icon={faBars} />
-        </button>
-      )}
-
-    </div>
-  );
+      {!isSidebarOpen && (
+        <button onClick={() => setIsSidebarOpen(true)} className='sidebar-open-btn'>
+          <FontAwesomeIcon icon={faBars} />
+        </button>
+      )}
+    </div>
+  );
 }
 
 export default MainPage;
