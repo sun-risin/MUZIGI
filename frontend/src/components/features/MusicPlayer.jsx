@@ -10,6 +10,34 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
   const isLiked = playlistTracks?.some(item => item.trackId === music.trackId);
 
+  /** ---------------------------------------------------------
+   *  🎯 Spotify 필수 단계: 재생 전 transferPlayback
+   * ---------------------------------------------------------*/
+  const transferPlayback = async (token, deviceId) => {
+    const res = await fetch(`https://api.spotify.com/v1/me/player`, {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        device_ids: [deviceId],
+        play: false
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json();
+      console.error("TransferPlayback 오류:", err);
+      throw new Error("TransferPlayback 실패 " + res.status);
+    }
+
+    console.log("TransferPlayback 성공 → 이 디바이스가 active됨!");
+  };
+
+  /** ---------------------------------------------------------
+   *  🎵 재생 / 일시정지
+   * ---------------------------------------------------------*/
   const handlePlayPause = async () => {
     const token = localStorage.getItem('spotifyAccessToken');
     const player = window.SpotifyPlayerInstance;
@@ -19,13 +47,13 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       return;
     }
 
-    // 미리듣기 타이머 초기화
+    // 1) 기존 타이머 클리어
     if (previewTimerRef.current) {
       clearTimeout(previewTimerRef.current);
       previewTimerRef.current = null;
     }
 
-    // ★ 일시정지
+    // 2) 일시정지
     if (isPlaying) {
       try {
         await player.pause();
@@ -37,18 +65,20 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       return;
     }
 
-    // ★ 재생 (정답 코드)
+    // ▶ 3) 재생
     try {
-      console.log("▶ 재생 요청:", music.trackId);
+      // 3-1) 재생 전 반드시 active device 설정
+      await transferPlayback(token, deviceId);
 
-      const playRes = await fetch("https://api.spotify.com/v1/me/player/play", {
-        method: "PUT",
+      // 3-2) 즉시 Play API 호출 (트랙 직접 재생)
+      const playRes = await fetch(`https://api.spotify.com/v1/me/player/play`, {
+        method: 'PUT',
         headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json"
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          uris: [`spotify:track:${music.trackId}`]   // ★ device_id 절대 넣지 않는다
+          uris: [`spotify:track:${music.trackId}`]
         })
       });
 
@@ -60,11 +90,9 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
 
       console.log("Play API 성공");
 
-      // SDK 재생
-      await player.resume();
       setIsPlaying(true);
 
-      // 30초 미리듣기 타이머
+      // 30초 미리듣기
       previewTimerRef.current = setTimeout(() => {
         if (window.SpotifyPlayerInstance) {
           window.SpotifyPlayerInstance.pause();
@@ -74,30 +102,30 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
         console.log("30초 미리듣기 자동 종료");
       }, 30000);
 
-    } catch (e) {
-      console.error("재생 실패:", e);
+    } catch (error) {
+      console.error("재생 실패:", error);
       setIsPlaying(false);
     }
   };
 
+  /** ---------------------------------------------------------
+   *  👍 좋아요 기능
+   * ---------------------------------------------------------*/
   const handleLike = () => {
-    if (isLiked) {
-      console.log("이미 좋아요한 곡");
-      return;
-    }
+    if (isLiked) return;
     onToggleLike({ ...music, emotion });
   };
 
   const handleLogin = () => {
-    localStorage.removeItem("spotifyAccessToken");
+    localStorage.removeItem('spotifyAccessToken');
     window.location.href = `${API_BASE_URL}/api/spotify/auth/login`;
   };
 
   return (
     <div className="music-player-container">
       <div className="track-info">
-        <p className="track-title">{music.title || "제목 정보 없음"}</p>
-        <p className="track-artist">{music.artist || "아티스트 정보 없음"}</p>
+        <p className="track-title">{music.title || '제목 정보 없음'}</p>
+        <p className="track-artist">{music.artist || '아티스트 정보 없음'}</p>
       </div>
 
       {isPlayerReady ? (
@@ -114,7 +142,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
           <button
             type="button"
             onClick={handleLike}
-            className={`like-btn ${isLiked ? "liked" : ""}`}
+            className={`like-btn ${isLiked ? 'liked' : ''}`}
           >
             <FontAwesomeIcon icon={faHeart} />
           </button>
