@@ -7,3 +7,4 @@ class UserSchema(Schema):
     userDocId = fields.String()
     chatIds = fields.List(fields.String())
     playlistIds = fields.List(fields.String())
+    userDocId = fields.String()
