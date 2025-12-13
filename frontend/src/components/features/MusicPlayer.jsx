@@ -55,20 +55,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
         if (!response.ok) {
           const errorBody = await response.json();
           console.error('Spotify API 오류 본문:', errorBody);
-          if (!response.ok) {
-          const errorBody = await response.json().catch(() => ({}));
-          console.error(`Spotify API 오류 발생 (${response.status}):`, errorBody);
-
-          if (response.status === 403) {
-            alert("재생 실패: 프리미엄 계정이 아니거나 'user-modify-playback-state' 권한이 없습니다.");
-          } else if (response.status === 404) {
-            alert("활성화된 기기를 찾을 수 없습니다. (deviceId 오류)");
-          } else if (response.status === 401) {
-            alert("인증 토큰이 만료되었습니다. 다시 로그인해주세요.");
-          }
-          return; // 중단
-        }
-         // throw new Error(`Spotify API failed with status ${response.status}`);
+          throw new Error(`Spotify API failed with status ${response.status}`);
         }
         setIsPlaying(true);
         console.log("수동 재생 시작");
