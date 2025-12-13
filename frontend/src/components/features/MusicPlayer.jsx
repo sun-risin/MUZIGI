@@ -38,7 +38,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
     } else {
       try {
         const response = await fetch(
-        `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
         {
             method: 'PUT',
             headers: {
