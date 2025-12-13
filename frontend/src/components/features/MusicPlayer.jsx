@@ -38,8 +38,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
     } else {
       try {
         const response = await fetch(
-          `${API_BASE_URL}/api/spotify/play`, // 👈 백엔드 프록시 엔드포인트로 교체`https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
-          {
+          `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,          {
             method: 'PUT',
             headers: {
               'Authorization': `Bearer ${token}`,
