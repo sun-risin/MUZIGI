@@ -37,6 +37,21 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
       }
     } else {
       try {
+        let finalUri ="";
+        const rawId = music.trackId;
+
+        if(!rawId){
+          alert("트랙 정보가 없습니다.");
+          return;
+        }
+        if (rawId.startsWith("spotify:track:")) {
+            finalUri = rawId;
+        } else {
+            finalUri = `spotify:track:${rawId}`;
+        }
+        console.log(`재생 시도: ${music.title} (URI: ${finalUri})`);
+        console.log(`기기 ID: ${deviceId}`);
+
         const response = await fetch(
           `https://api.spotify.com/v1/me/player/play?device_id=${deviceId}`,
         {
@@ -46,7 +61,7 @@ function MusicPlayer({ music, isPlayerReady, deviceId, onToggleLike, emotion, pl
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              uris: [`spotify:track:${music.trackId}`],
+              uris: [finalUri],
               position_ms: 0,
             }),
           }
