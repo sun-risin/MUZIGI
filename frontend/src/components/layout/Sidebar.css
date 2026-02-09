@@ -1,0 +1,252 @@
+/* Sidebar.css */
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -320px; /* 너비 + 여유분만큼 숨김 */
+  width: 280px;
+  height: 100vh; /* [변경] % 대신 vh 사용해 화면 꽉 채움 */
+  background-color: #fdfefd;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.2);
+  transition: right 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  right: 0;
+}
+
+/* 사이드바 헤더 */
+.sidebar-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  flex-shrink: 0; /* 헤더는 줄어들지 않음 */
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #555;
+  padding: 5px;
+}
+
+.close-btn:hover {
+  color: #000;
+}
+
+/* ------------------------------------------------------- */
+/* [핵심 추가] 중간 스크롤 영역 (이 안에서만 스크롤 됨) */
+.sidebar-scroll-area {
+  flex: 1; /* 남은 공간을 모두 차지 */
+  overflow-y: auto; /* 내용 넘치면 스크롤 발생 */
+  min-height: 0; /* 플렉스박스 스크롤 버그 방지 */
+  
+  /* 내부 여백 조정 (스크롤바와 내용 간격) */
+  padding-right: 5px; 
+  margin-right: -5px;
+}
+
+/* 스크롤바 디자인 (전체 영역에 적용) */
+.sidebar-scroll-area::-webkit-scrollbar {
+  width: 6px;
+}
+.sidebar-scroll-area::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 4px;
+}
+.sidebar-scroll-area::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+/* ------------------------------------------------------- */
+
+/* 주요 액션 */
+.main-actions {
+  background-color: #EDEDED;
+  border-radius: 8px;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  padding: 10px 0;
+  cursor: pointer;
+  color: #333;
+  font-size: 1rem;
+}
+
+.action-item:hover {
+  color: #000;
+}
+
+.action-icon {
+  margin-right: 10px;
+  font-size: 1.1rem;
+}
+
+/* 섹션 공통 */
+.sidebar-section {
+  margin-bottom: 20px;
+}
+
+.sidebar-section h3 {
+  font-size: 1.2rem;
+  color: #333;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-section h3 .fa-icon {
+  margin-right: 8px;
+}
+
+/* [변경] 기존 리스트 스타일 */
+.scrollable-list {
+  /* max-height 삭제: 이제 부모(.sidebar-scroll-area)가 스크롤 담당 */
+  /* overflow-y 삭제 */
+  background-color: #EDEDED;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+/* playlist-list도 같은 스타일 적용 (JSX 클래스명 대응) */
+.playlist-list, .chat-list {
+  background-color: #EDEDED;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+
+/* --- 토글 스타일 --- */
+.playlist-category {
+  margin-bottom: 8px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+}
+.playlist-category:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+/* 토글 헤더 */
+.playlist-emotion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  padding: 5px 5px;
+  border-radius: 4px;
+}
+
+.playlist-emotion-header:hover {
+  background-color: #ddd;
+}
+
+.playlist-emotion-title {
+  font-size: 0.95rem;
+  font-weight: bold;
+  color: #333;
+}
+
+.toggle-icon {
+  color: #666;
+  font-size: 0.8rem;
+}
+
+/* 토글 내용물 */
+.playlist-items-container {
+  margin-top: 5px;
+  padding-left: 5px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 비어 있음 메시지 */
+.playlist-item-empty-category {
+  font-size: 0.8rem;
+  color: #999;
+  font-style: italic;
+  padding: 5px 10px;
+}
+
+/* 개별 노래 아이템 */
+.playlist-item {
+  padding: 6px 10px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+}
+
+.playlist-item:hover {
+  background-color: #e0e0e0;
+}
+
+.playlist-item-title {
+  font-size: 0.9rem;
+  color: #444;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.playlist-item-artist {
+  font-size: 0.8rem;
+  color: #777;
+  margin: 0;
+}
+
+/* 채팅 목록 아이템 */
+.chat-item {
+  padding: 8px 0;
+  color: #555;
+  border-bottom: 1px solid #ddd;
+}
+.chat-item:last-child {
+  border-bottom: none;
+}
+
+/* [변경] 로그아웃 버튼 (푸터) */
+.sidebar-footer {
+  margin-top: auto; /* 혹시 모를 대비 */
+  padding-top: 20px;
+  border-top: 1px solid #ddd;
+  flex-shrink: 0; /* [중요] 공간 부족해도 찌그러지지 않음 */
+  background-color: #fdfefd; /* 배경색 지정해서 위 내용과 겹침 방지 */
+}
+
+.logout-btn {
+  width: 100%;
+  padding: 12px 15px;
+  background-color: #5D80B6;
+  color: #ffffff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logout-btn:hover {
+  background-color: #ACBCD3;
+}
+
+.logout-icon {
+  margin-right: 8px;
+  font-size: 1.2rem;
+}

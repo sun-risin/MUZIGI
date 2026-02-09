@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>뮤지기 테스트 페이지</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    margin: 0;
+    padding: 0;
+  }
+  #chat-box {
+    width: 500px;
+    margin: 30px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+  }
+  .message {
+    display: flex;
+    margin-bottom: 10px;
+  }
+  .user {
+    justify-content: flex-end;
+  }
+  .muzigi {
+    justify-content: flex-start;
+  }
+  .bubble {
+    max-width: 70%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    line-height: 1.5;
+    white-space: pre-wrap; /* f-string 줄바꿈 유지 */
+  }
+  .user .bubble {
+    background: #0078ff;
+    color: white;
+    border-bottom-right-radius: 0;
+  }
+  .muzigi .bubble {
+    background: #e5e5e5;
+    color: black;
+    border-bottom-left-radius: 0;
+  }
+</style>
+</head>
+<body>
+  <h1>🎵 뮤지기 Flask 서버 테스트 🎵</h1>
+  <p>서버 연결이 성공적으로 동작 중입니다!</p>
+
+  <form id="signupForm">
+    <h3>회원가입 테스트</h3>
+    <input type="text" id="signup-userId" placeholder="아이디" required><br>
+    <input type="password" id="signup-password" placeholder="비밀번호" required><br>
+    <input type="text" id="nickname" placeholder="닉네임" required><br>
+    <button type="submit">가입하기</button>
+  </form>
+
+  <form id="loginForm">
+    <h3>로그인 테스트</h3>
+    <input type="text" id="login-userId" placeholder="아이디" required><br>
+    <input type="password" id="login-password" placeholder="비밀번호" required><br>
+    <button type="submit">로그인</button>
+  </form>
+
+
+  <button id="checkToken">로그인 유지 확인</button>
+
+  <form id="emotionSelect">
+    <h3>감정 전달</h3>
+    <input type="text" id="emotionName" placeholder="감정 입력" required><br>
+    <button type="submit">뮤지기 전달</button>
+  </form>
+
+  <p id="response"></p>
+
+
+  <div id="chat-box">
+    <h3>뮤지기 채팅 테스트</h3>
+    <div id="messages"></div>
+  </div>
+
+  <script>
+    let userToken = null; // 로그인 성공 시 저장할 토큰
+    let chatId = ""; // 로그인 성공 시 저장할 첫 chatId
+
+    document.getElementById("signupForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = {
+        userId: document.getElementById("signup-userId").value,
+        password: document.getElementById("signup-password").value,
+        nickname: document.getElementById("nickname").value
+      };
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user)
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const user = {
+        userId: document.getElementById("login-userId").value,
+        password: document.getElementById("login-password").value,
+      };
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(user)
+      });
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data) + "\n닉네임: " + data["nickname"];
+      
+      // 로그인 성공 시 토큰 저장
+      if (data.userToken) {
+        userToken = data.userToken;
+        localStorage.setItem("userToken", userToken);
+        alert("토큰 저장 완료!");
+      }
+
+      loadMessages(data.firstChatId);
+    });
+
+    // 토큰 검증용 요청
+    document.getElementById("checkToken").addEventListener("click", async () => {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        alert("로그인 토큰이 없습니다!");
+        return;
+      }
+
+      const res = await fetch("/api/auth/tokentest", {
+        method: "GET",
+        headers: {
+          "Authorization": userToken, // 헤더에 토큰 포함
+        },
+      });
+
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
+
+
+    // 감정 선택, 뮤지기 버블 생성
+    document.getElementById("emotionSelect").addEventListener("submit", async (e) => {
+      const userToken = localStorage.getItem("userToken");
+      if (!userToken) {
+        alert("로그인 토큰이 없습니다!");
+        return;
+      }
+
+      e.preventDefault();
+      const makeBubble = {
+        emotionName: document.getElementById("emotionName").value
+      };
+      
+      const res = await fetch("/api/chat/message", {
+        method: "POST",
+        headers: { 
+          "Authorization": userToken,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(makeBubble)
+      });
+
+      const data = await res.json();
+      document.getElementById("response").innerText = JSON.stringify(data);
+    });
+
+    async function loadMessages(chatId) {
+      const token = localStorage.getItem("userToken");
+
+      if (!chatId || !token) {
+        console.warn("토큰 또는 chatId가 없습니다.");
+        return;
+      }
+
+      const res = await fetch(`http://127.0.0.1:5000/api/chat/${chatId}/messages`, {
+        method: "GET",
+        headers: {
+          "Authorization": userToken, // 헤더에 토큰 포함
+        },
+      });
+      const data = await res.json();
+
+      const container = document.getElementById("messages");
+      container.innerHTML = "";
+
+      data.messages.forEach(msg => {
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("message");
+        msgDiv.classList.add(msg.senderType ? "user" : "muzigi");
+
+        const bubble = document.createElement("div");
+        bubble.classList.add("bubble");
+        if (msg.recommendTracks != null) {
+          bubble.innerHTML = `${msg.content}<br>${Object.values(msg.recommendTracks[0])}<br>${Object.values(msg.recommendTracks[1])}<br>${Object.values(msg.recommendTracks[2])}`;
+        } else {
+          bubble.textContent = msg.content;
+        }
+        msgDiv.appendChild(bubble);
+        container.appendChild(msgDiv);
+      });
+    }
+  </script>
+</body>
+</html>

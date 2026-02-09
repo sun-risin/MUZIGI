@@ -1,0 +1,131 @@
+.chat-container {
+  padding: 20px;
+  height: 100%; 
+  flex: 1;
+  overflow-y: auto; /* 내용이 많아지면 스크롤바 생성 */
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.chat-welcome {
+  display: flex;
+  align-items: center; 
+  margin-bottom: 30px; /* 다른 채팅과의 간격 */
+}
+
+.headphone-logo {
+  width: 80px; 
+  height: 80px;
+  margin-right: 20px; 
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.speech-bubble {
+  position: relative; 
+  background-color: #f0f0f0; 
+  padding: 15px 20px;
+  border-radius: 15px; 
+  max-width: 400px;
+}
+
+.speech-bubble p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.speech-bubble::before {
+  content: '';
+  position: absolute;
+  left: -9px; 
+  top: 40px;
+  transform: translateY(-50%);
+  border: 10px solid transparent;
+  border-right-color: #f0f0f0; 
+  border-left: 0;
+}
+
+
+.chat-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px; 
+}
+
+.chat-bubble {
+  display: flex;
+  align-items: flex-start;
+  max-width: 80%;
+}
+
+.bot-profile-in-chat {
+  width: 80px;   
+  height: 80px;  
+  margin-right: 20px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* 실제 텍스트/음악이 들어가는 말풍선 */
+.message-content {
+  border-radius: 15px;
+  padding: 15px 20px; 
+}
+
+/*엔터 인식*/
+.message-content p {
+  margin: 0;          
+  line-height: 1.5;    
+  white-space: pre-line;
+}
+
+
+/* 왼쪽 뮤지기 챗 */
+.chat-bubble.left {
+  justify-content: flex-start;
+}
+.chat-bubble.left .message-content {
+  background-color: #f0f0f0;
+  position: relative;
+}
+
+.chat-bubble.left .message-content::before { 
+  content: '';
+  position: absolute;
+  left: -9px; /* 말풍선 왼쪽에 붙이기 */
+  top: 40px;
+  transform: translateY(-50%);
+  border: 10px solid transparent;
+  border-right-color: #f0f0f0; 
+  border-left: 0;
+}
+
+/* 오른쪽 사용자 챗 */
+.chat-bubble.right {
+  justify-content: flex-end;
+  margin-left: auto; 
+}
+.chat-bubble.right .message-content {
+  background-color: #ACBCD3; 
+  position: relative;
+}
+.chat-bubble.right .message-content::after {
+  content: '';
+  position: absolute;
+  right: -9px; 
+  top: 50%;
+  transform: translateY(-50%);
+  border: 10px solid transparent;
+  border-left-color: #ACBCD3; 
+  border-right: 0;
+}
+
+.music-list {
+  padding-left: 20px;
+  margin-top: 10px;
+  margin-bottom: 0;
+}
+.music-list li {
+  margin-bottom: 5px;
+}

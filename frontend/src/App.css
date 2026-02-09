@@ -1,11 +1,57 @@
-/* #root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+body {
+  margin: 0;
+  background-color: #fdfefd;
 }
 
-.logo {
+#root {
+  margin: 0 auto;
+}
+
+/* 공통 */
+.app-container {
+  width: 100vw;
+  height: 100vh;
+}
+
+/* 로그인 전 */
+.app-container.login {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.app-container.login .login {/*로그인창 위로 올림*/
+  transform: translateY(-8%); 
+}
+
+/* 로그인 후 */
+.app-container.main {
+  display: flex;
+  justify-content: space-between;
+  align-items: stretch;
+}
+
+.main-content {
+  flex: 4;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 40px;
+}
+
+.sidebar {
+  flex: 1;
+  background-color: #ffffff;
+  border-left: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+}
+
+
+/* .logo {
   height: 6em;
   padding: 1.5em;
   will-change: filter;
@@ -31,8 +77,8 @@
   a:nth-of-type(2) .logo {
     animation: logo-spin infinite 20s linear;
   }
-}
-
+} */
+/* 
 .card {
   padding: 2em;
 }
@@ -40,29 +86,3 @@
 .read-the-docs {
   color: #888;
 } */
-
-.app-container {
-  display: flex;
-  flex-direction: row;
-  height: 100vh;
-  padding: 0;
-  background-color: #fdfdfe;
-}
-
-.main-content {
-  flex: 4;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 100px; 
-}
-
-.sidebar {
-  flex: 1;
-  background-color: #ffffff;
-  border-left: 1px solid #ddd;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 20px; 
-}
