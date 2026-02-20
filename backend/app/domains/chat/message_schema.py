@@ -1,4 +1,5 @@
 from marshmallow import Schema, fields
+from track.track_schema import TrackInfoSchema
 
 class MessageSchema(Schema):
     chatId = fields.String()
@@ -9,5 +10,6 @@ class MessageSchema(Schema):
     emotionName = fields.String()
     recommendTracks = fields.List(fields.Dict(
         keys= fields.String(),
-        values=fields.String()
+        values=fields.Nested(TrackInfoSchema)
     ))
+    created_at = fields.DateTime()
