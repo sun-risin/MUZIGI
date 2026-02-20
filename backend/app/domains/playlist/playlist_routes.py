@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
 from firebase_admin import firestore
-from app.routes.auth_routes import login_required
+from backend.app.domains.auth.auth_routes import login_required
 import requests
 
 # 서비스 레이어의 함수들 import
-from app.services.playlist_services import (spotify_getCurrentUser,
+from backend.app.domains.playlist.playlist_services import (spotify_getCurrentUser,
                                             spotify_createPlaylist,
                                             spotify_getUserPlaylist,
                                             spotify_addItem,

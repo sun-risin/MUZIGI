@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify, current_app
 from firebase_admin import firestore
 from werkzeug.security import generate_password_hash, check_password_hash
-from app.schemas.user_schema import UserSchema
+from backend.app.domains.user.user_schema import UserSchema
 import jwt
 from functools import wraps
 from jwt import ExpiredSignatureError, InvalidTokenError
@@ -34,7 +34,7 @@ def signup():
     hashed_pw = generate_password_hash(password)
 
     # Firestore에 생성 및 저장
-    from app.routes.chat_routes import create_chat
+    from backend.app.domains.chat.chat_routes import create_chat
     new_user_doc = db.collection("users").document() # 문서 생성
     new_user_docId = new_user_doc.id
     try:

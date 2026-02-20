@@ -1,5 +1,5 @@
 from firebase_admin import firestore
-from app.schemas.playlist_schema import PlaylistSchema, TrackInfoSchema
+from backend.app.domains.playlist.playlist_schema import PlaylistSchema, TrackInfoSchema
 import requests
 
 db = firestore.client()

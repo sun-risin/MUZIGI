@@ -1,7 +1,7 @@
 from flask import Blueprint, request, jsonify
 from firebase_admin import firestore
 from google.cloud.firestore_v1.base_query import FieldFilter
-from app.routes.auth_routes import login_required
+from backend.app.domains.auth.auth_routes import login_required
 import random
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")

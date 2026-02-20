@@ -7,6 +7,11 @@ import tempfile
 import firebase_admin
 from firebase_admin import credentials, initialize_app
 
+from backend.app.domains.auth import auth_routes
+from backend.app.domains.chat import chat_routes
+from backend.app.domains.spotify import forSpotify_routes
+from backend.app.domains.playlist import playlist_routes
+
 def create_app():
     # .env 파일에서 환경 변수 로드
     load_dotenv(find_dotenv())
@@ -42,12 +47,7 @@ def create_app():
         cred = credentials.Certificate(cred_path)
         initialize_app(cred)
         
-    # --- Blueprint 등록 ---    
-    from app.routes import main_route, auth_routes, chat_routes, forSpotify_routes, playlist_routes
-       
-    # 테스트 페이지 렌더링
-    app.register_blueprint(main_route.main_blp)
-    
+    # --- Blueprint 등록 ---        
     # auth_routes
     app.register_blueprint(auth_routes.auth_blp)
     
