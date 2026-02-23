@@ -40,7 +40,7 @@ def createPlaylist(curr_user):
     
     # 1-2. 재생목록 존재 여부 확인 (Spotify)
     try:
-        exist_play, plus_db_play = spotify_getUserPlaylist(spotifyToken) # spotify
+        exist_play, plus_db_play = spotify_getUserPlaylist(spotifyToken, userDocId) # spotify
     except requests.exceptions.HTTPError as http_e:
         http_error_msg = str(http_e)
         return jsonify({"error" : f"spotify 재생목록 가져오기 오류: {http_error_msg}"}), 500
@@ -142,7 +142,7 @@ def addTrackToPlaylist(curr_user, emotionName):
     
     # 1-2. 재생목록 존재 여부를 확인한다.
     try:
-        exist_play, plus_db_play = spotify_getUserPlaylist(spotifyToken) # spotify
+        exist_play, plus_db_play = spotify_getUserPlaylist(spotifyToken, userDocId) # spotify
     except requests.exceptions.HTTPError as http_e:
         http_error_msg = str(http_e)
         return jsonify({"error" : f"spotify 재생목록 가져오기 오류: {http_error_msg}"}), 500

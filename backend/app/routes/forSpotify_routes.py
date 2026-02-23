@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import string
 import random
 import requests
-from flask import Blueprint, redirect, request, session, jsonify
+from flask import Blueprint, redirect, request, session, jsonify, make_response
 from firebase_admin import firestore
 
 track_blp = Blueprint("track", __name__, url_prefix="/api/spotify")
@@ -17,7 +17,7 @@ load_dotenv()
 SPOTIFY_CLIENT_ID = os.getenv('SPOTIFY_CLIENT_ID')
 SPOTIFY_CLIENT_SECRET = os.getenv('SPOTIFY_CLIENT_SECRET')
 #리다이렉트할 프론트 위치는 /chat임
-FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173/chat')
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://127.0.0.1:5173')
 PORT = int(os.getenv('PORT', 5000))
 BACKEND_CALLBACK_URL = os.getenv('BACKEND_CALLBACK_URL', f"http://127.0.0.1:{PORT}/api/spotify/auth/callback")
 REDIRECT_URI = BACKEND_CALLBACK_URL
@@ -98,9 +98,11 @@ def spotify_callback():
         session['access_token'] = token_data.get('access_token')
         session['refresh_token'] = token_data.get('refresh_token')
         
-        # --- React 앱의 메인 페이지로 리디렉션 ---
-        return redirect(f"{FRONTEND_URL}?access_token={token_data.get('access_token')}?refresh_token={token_data.get('refresh_token')}")
-        #return redirect("/spoti") # 백엔드 서버 테스트페이지
+        # --- React 앱의 메인 페이지로 리디렉션 (쿠키 설정값 지정)
+        resp = make_response(redirect(f"{FRONTEND_URL}/chat"))
+        resp.set_cookie("access_token", token_data.get("access_token"), httponly=True, secure=True, samesite='None')
+        resp.set_cookie("refresh_token", token_data.get("refresh_token"), httponly=True, secure=True, samesite='None')
+        return resp
 
     except requests.exceptions.HTTPError as e:
         return jsonify({"error": "Failed to retrieve token", "details": str(e)}), 500
@@ -113,13 +115,13 @@ def get_spotify_token():
     HTML(클라이언트)가 현재 로그인 상태를 확인할 수 있도록
     세션에 저장된 토큰을 JSON으로 반환
     """
-    access_token = session.get('access_token')
-    
+    access_token = request.cookies.get('access_token')
+
     if access_token:
         print("Returning token to client.")
         return jsonify({
             "access_token": access_token
-        })
+        }), 200
     else:
         print("No token found in session.")
         return jsonify({

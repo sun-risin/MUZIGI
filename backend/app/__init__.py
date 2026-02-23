@@ -34,17 +34,13 @@ def create_app():
     
     # Firebase 초기화 (중복 실행 에러 방지)
     if not firebase_admin._apps:
-        firebase_b64 = os.getenv("FIREBASE_CREDENTIALS_B64")
-        if not firebase_b64:
-            raise RuntimeError("FIREBASE_CREDENTIALS_B64 is not set in environment variables")
-        
-        # Base64 → 임시 JSON 파일로 변환
-        decoded = base64.b64decode(firebase_b64)
-        with tempfile.NamedTemporaryFile(mode="w+b", suffix=".json") as f:
-            f.write(decoded)
-            f.flush()  # 파일에 기록 완료
-            cred = credentials.Certificate(f.name)
-            initialize_app(cred)
+        cred_path = "/home/ubuntu/muzigi/firebase/serviceAccountKey.json"
+
+        if not os.path.exists(cred_path):
+            raise RuntimeError(f"Firebase credential file not found: {cred_path}")
+
+        cred = credentials.Certificate(cred_path)
+        initialize_app(cred)
         
     # --- Blueprint 등록 ---    
     from app.routes import main_route, auth_routes, chat_routes, forSpotify_routes, playlist_routes
