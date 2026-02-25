@@ -1,6 +1,5 @@
-import os
-from dotenv import load_dotenv, find_dotenv
 from flask import Flask
+from config import get_flask_env, config_by_env
 from flask_cors import CORS
 from extensions import init_firestore
 
@@ -9,45 +8,37 @@ from backend.app.domains.chat import chat_routes
 from backend.app.domains.spotify import forSpotify_routes
 from backend.app.domains.playlist import playlist_routes
 
-def create_app():
-    # .env 파일에서 환경 변수 로드
-    load_dotenv(find_dotenv())
-    
+def create_app():    
     # Flask 앱 설정
     app = Flask(__name__)
     
-    # 세션 사용을 위한 Secret Key 설정
-    app.secret_key = os.getenv("FLASK_SECRET_KEY")
-    if not app.secret_key:
-        raise RuntimeError("FLASK_SECRET_KEY is not set in environment variables")
+    # --- config ---
+    # 로드
+    app.config.from_object(config_by_env[get_flask_env()])
     
-    # CORS 허용 위해 프론트엔드 URL - 배포 생각해서 지정하는 식으로 수정함
-    FRONTEND_URL = os.getenv("FRONTEND_URL", 'http://127.0.0.1:5173')
+    # 필수값 검증
+    if not app.config["SECRET_KEY"]:
+        raise RuntimeError("FLASK_SECRET_KEY is not set")
+    if not app.config["MUZIGI_JWT_KEY"]:
+        raise RuntimeError("MUZIGI_JWT_KEY is not set")
+    if not app.config["CORS_RESOURCES"]:
+        raise RuntimeError("CORS_RESOURCES is not set")
+    if not app.config["CORS_SUPPORTS_CREDENTIALS"]:
+        raise RuntimeError("CORS_SUPPORTS_CREDENTIALS is not set")
     
-    # JWT 인증 비밀키 설정
-    app.config['MUZIGI_JWT_KEY'] = os.getenv("MUZIGI_JWT_KEY")
-    if not app.config['MUZIGI_JWT_KEY']:
-        raise RuntimeError("MUZIGI_JWT_KEY is not set in environment variables")
-    
-    # 리액트 Vite 서버 요청 허용
-    # + supports_credentials=True -> 세션 쿠키 주고받게.
+    # CORS 적용   
     CORS(app,
-         resources={r"/*": {"origins": FRONTEND_URL}}, supports_credentials=True)
+         resources=app.config["CORS_RESOURCES"], 
+         supports_credentials=app.config["CORS_SUPPORTS_CREDENTIALS"])
     
-    # DB 관련
+    # --- extension ---
+    # DB
     init_firestore()
         
     # --- Blueprint 등록 ---        
-    # auth_routes
-    app.register_blueprint(auth_routes.auth_blp)
-    
-    # chat_routes
-    app.register_blueprint(chat_routes.chat_blp)
-    
-    # forSpotify_routes
-    app.register_blueprint(forSpotify_routes.track_blp)
-    
-    # playlist_routes
-    app.register_blueprint(playlist_routes.playlist_blp)
+    app.register_blueprint(auth_routes.auth_blp)            # auth_routes 
+    app.register_blueprint(chat_routes.chat_blp)            # chat_routes
+    app.register_blueprint(forSpotify_routes.track_blp)     # forSpotify_routes
+    app.register_blueprint(playlist_routes.playlist_blp)    # playlist_routes
     
     return app
