@@ -5,9 +5,11 @@ from app.common.exception.customException import ErrorCode, CustomException
 from werkzeug.security import generate_password_hash
 from backend.app.domains.chat.chat_routes import create_chat
 
-register_user_schema = RegisterUserSchema()
-user_schema = UserSchema()
+# --- 전역변수
+register_user_schema = RegisterUserSchema() # 회원가입 입력값 validate용 schema
+user_schema = UserSchema()                  # 회원 저장값 validate용 schema
 
+# --- 회원 등록
 def register_user(user_data):
     info_errors = register_user_schema.validate(user_data)
     if info_errors: # 회원가입 시 비번이나 닉네임 규칙에 맞지 않음
