@@ -31,8 +31,8 @@ class ApiResponse:
     # 실패
     @staticmethod
     def error(
-        status: int,
-        message: str = "실패", code: str = "000_UNKNOWN_ERR"):
+        status: int, code: str,
+        message: str = "실패"):
         
         return jsonify({
             "success" : False,
