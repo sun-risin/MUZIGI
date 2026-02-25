@@ -2,6 +2,7 @@
 
 from flask import jsonify
 from typing import Any
+from backend.app.common.exception.errorCode import ErrorCode  
 
 """
 {
@@ -15,7 +16,7 @@ status - 실제 응답 http status (200, 400, 401...)
 
 class ApiResponse:
     
-    # 성공
+    # --- 성공
     @staticmethod
     def success(
         status: int,
@@ -28,15 +29,26 @@ class ApiResponse:
             "data" : data,
         }), status
         
-    # 실패
+        
+    # --- 실패
+    # 범용적
     @staticmethod
-    def error(
-        status: int, code: str,
-        message: str = "실패"):
+    def error(status: int, message: str = "실패"):
         
         return jsonify({
             "success" : False,
-            "code" : code,
+            "code" : str(status),
             "message" : message,
             "data" : None,
         }), status
+        
+    # custom exception
+    @staticmethod
+    def error_byCode(error_code: ErrorCode):
+        
+        return jsonify({
+            "success" : False,
+            "code" : error_code.code,
+            "message" : error_code.message,
+            "data" : None,
+        }), error_code.status
