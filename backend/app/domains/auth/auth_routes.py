@@ -1,57 +1,25 @@
 from flask import Blueprint, request, jsonify, current_app
-from firebase_admin import firestore
-from werkzeug.security import generate_password_hash, check_password_hash
-from backend.app.domains.user.user_schema import UserSchema
+
+from auth_services import register_user
+
+from app.common.apiResponse import ApiResponse
+
+from werkzeug.security import  check_password_hash
 import jwt
 from functools import wraps
 from jwt import ExpiredSignatureError, InvalidTokenError
 
 auth_blp = Blueprint("auth", __name__, url_prefix="/api/auth")
-db = firestore.client()
-user_schema = UserSchema()
 
 # 회원가입
 @auth_blp.route("/signup", methods=["POST"])
 def signup():
     data = request.get_json()
-    errors = user_schema.validate(data) # schema로 유효성 검사
-    if errors:                          # 비번이나 닉네임 문제이므로 error 따로 출력
-        return jsonify({
-        "error": errors,
-        "message": "유효하지 않은 입력값입니다."
-    }), 400
-
-    userId = data["userId"]
-    password = data["password"]
-    nickname = data["nickname"]
-
-    # 아이디 중복 체크
-    user_ref = db.collection("users").where("userId", "==", userId).stream()
-    if any(user_ref):
-        return jsonify({"error": "이미 존재하는 아이디입니다."}), 409
-
-    # 비밀번호 해싱 후 저장 예정
-    hashed_pw = generate_password_hash(password)
-
-    # Firestore에 생성 및 저장
-    from backend.app.domains.chat.chat_routes import create_chat
-    new_user_doc = db.collection("users").document() # 문서 생성
-    new_user_docId = new_user_doc.id
-    try:
-        first_chatId = create_chat(new_user_docId)      # 첫 채팅 생성
-    except:
-        return jsonify({"message": "첫 채팅 생성 실패"}), 500
     
-    new_user_doc.set({
-        "userId" : userId,
-        "password" : hashed_pw,
-        "nickname" : nickname,
-        "userDocId" : new_user_docId, # 추후 로그인 토큰 발급 시 넘겨줄 문서 ID (조회 효율 위함)
-        "chatIds": [first_chatId],        # 리스트 형태로 저장됨
-        "playlistIds" : {} # 어차피 나중에 생성될 때 수정될 거임
-    })
+    register_user(data) # 회원가입 서비스 로직
 
-    return jsonify({"message": "회원가입 성공"}), 201
+    return ApiResponse.success(
+        status=201, message="회원가입 성공")
 
 
 # JWT 인증 로그인
