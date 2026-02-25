@@ -5,10 +5,9 @@ import string
 import random
 import requests
 from flask import Blueprint, redirect, request, session, jsonify, make_response
-from firebase_admin import firestore
+from extensions import db
 
 track_blp = Blueprint("track", __name__, url_prefix="/api/spotify")
-db = firestore.client()
 
 
 # .env 파일에서 환경 변수 로드

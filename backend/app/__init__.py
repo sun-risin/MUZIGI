@@ -2,10 +2,7 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask
 from flask_cors import CORS
-import base64
-import tempfile
-import firebase_admin
-from firebase_admin import credentials, initialize_app
+from extensions import init_firestore
 
 from backend.app.domains.auth import auth_routes
 from backend.app.domains.chat import chat_routes
@@ -37,15 +34,8 @@ def create_app():
     CORS(app,
          resources={r"/*": {"origins": FRONTEND_URL}}, supports_credentials=True)
     
-    # Firebase 초기화 (중복 실행 에러 방지)
-    if not firebase_admin._apps:
-        cred_path = "/home/ubuntu/muzigi/firebase/serviceAccountKey.json"
-
-        if not os.path.exists(cred_path):
-            raise RuntimeError(f"Firebase credential file not found: {cred_path}")
-
-        cred = credentials.Certificate(cred_path)
-        initialize_app(cred)
+    # DB 관련
+    init_firestore()
         
     # --- Blueprint 등록 ---        
     # auth_routes

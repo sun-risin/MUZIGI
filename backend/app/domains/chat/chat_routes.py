@@ -1,11 +1,11 @@
 from flask import Blueprint, request, jsonify
 from firebase_admin import firestore
+from extensions import db
 from google.cloud.firestore_v1.base_query import FieldFilter
 from backend.app.domains.auth.auth_routes import login_required
 import random
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
-db = firestore.client()
 
 # TODO - 감정에 맞는 특성값 조정 필요 : 긴장, 슬픔... 이외 감정도 음악 듣고 별로면 변경해야 함
 
