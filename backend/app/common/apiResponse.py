@@ -3,6 +3,16 @@
 from flask import jsonify
 from typing import Any
 
+"""
+{
+    success - 성공 여부 (T or F)
+    code - http status string (custom exception 때문에 str 형식.)
+    message - 응답 메시지
+    data - 반환 데이터. nullable
+},
+status - 실제 응답 http status (200, 400, 401...)
+"""
+
 class ApiResponse:
     
     # 성공
