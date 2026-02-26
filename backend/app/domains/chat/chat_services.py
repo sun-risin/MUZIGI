@@ -8,6 +8,8 @@ from track.track_services import tracks_recommend
 
 chat_schema = ChatSchema()
 
+# TODO - UI 반영값 제공
+
 # 새 채팅 생성 - 생성 채팅 아이디 반환
 def create_chat(userDocId):
     # Firestore에 생성 및 저장
