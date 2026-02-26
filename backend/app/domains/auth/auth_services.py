@@ -55,7 +55,7 @@ def get_token_and_user_info(login_data):
     # 입력값 유효성 검사
     login_data["nickname"] = "for_validate"    # 유효성 검사로 인해 닉네임 채워놓음
     
-    info_errors = user_schema.validate(login_data)
+    info_errors = register_user_schema.validate(login_data)
     if info_errors:
         raise CustomException(ErrorCode.INVALID_LOGIN_INFO)
     
