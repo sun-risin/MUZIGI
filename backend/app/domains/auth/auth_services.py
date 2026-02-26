@@ -1,10 +1,10 @@
 from extensions import db, FieldFilter
-from backend.app.domains.user.user_schema import RegisterUserSchema, UserSchema
-from app.common.exception.customException import ErrorCode, CustomException
+from user.user_schema import RegisterUserSchema, UserSchema
+from common.exception.customException import ErrorCode, CustomException
 import jwt_provider
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from backend.app.domains.chat.chat_routes import create_chat
+from chat.chat_services import create_chat
 
 # --- 전역변수
 register_user_schema = RegisterUserSchema() # 회원가입 입력값 validate용 schema
