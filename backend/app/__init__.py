@@ -2,6 +2,7 @@ from flask import Flask
 from .config import get_flask_env, config_by_env
 from flask_cors import CORS
 from .extensions import init_firestore
+from .common.exception.exception_handler import register_error_handlers
 
 from .domains.auth import auth_routes
 from .domains.chat import chat_routes
@@ -36,6 +37,9 @@ def create_app():
     # --- extension ---
     # DB
     init_firestore(app)
+    
+    # --- 에러 핸들러 ---
+    register_error_handlers(app)
         
     # --- Blueprint 등록 ---        
     app.register_blueprint(auth_routes.auth_blp)            # auth_routes 
