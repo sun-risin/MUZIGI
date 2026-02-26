@@ -4,11 +4,15 @@ from enum import Enum
 
 class ErrorCode(Enum):
     # --- 400
-    UNVALID_REGISTER_INFO = ("4_000_UNVALID_REGISTER_INFO", "유효하지 않은 회원가입 입력값", 400)
-    UNVALID_LOGIN_INFO = ("4_001_UNVALID_LOGIN_INFO", "유효하지 않은 로그인 입력값", 400)
+    INVALID_REGISTER_INFO = ("4_000_UNVALID_REGISTER_INFO", "유효하지 않은 회원가입 입력값", 400)
+    INVALID_LOGIN_INFO = ("4_001_UNVALID_LOGIN_INFO", "유효하지 않은 로그인 입력값", 400)
     
     # --- 401
     FAILED_LOGIN = ("100_FAILED_LOGIN", "로그인 실패", 401)
+    NONE_TOKEN = ("101_NONE_TOKEN", "토큰 없음", 401)
+    INVALID_USER = ("102_UNVALID_USER", "유효하지 않은 사용자", 401)
+    EXPIRED_TOKEN = ("103_EXPIRED_TOKEN", "토큰 유효기간 만료", 401)
+    INVALID_TOKEN = ("104_INVALID_TOKEN", "유효하지 않은 토큰", 401)
     
     # --- 409
     DUPLICATE_USER = ("900_DUPLICATE_USER", "동일 아이디 존재", 409)

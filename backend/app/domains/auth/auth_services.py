@@ -14,7 +14,7 @@ user_schema = UserSchema()                  # 회원 저장값 validate용 schem
 def register_user(user_data):
     info_errors = register_user_schema.validate(user_data)
     if info_errors: # 회원가입 시 비번이나 닉네임 규칙에 맞지 않음
-        raise CustomException(ErrorCode.UNVALID_REGISTER_INFO)
+        raise CustomException(ErrorCode.INVALID_REGISTER_INFO)
     
     userId = user_data["userId"]
     password = user_data["password"]
@@ -57,7 +57,7 @@ def get_token_and_user_info(login_data):
     
     info_errors = user_schema.validate(login_data)
     if info_errors:
-        raise CustomException(ErrorCode.UNVALID_LOGIN_INFO)
+        raise CustomException(ErrorCode.INVALID_LOGIN_INFO)
     
     # 회원 정보 조회
     userId = login_data["userId"]
