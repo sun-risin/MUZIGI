@@ -2,7 +2,6 @@ from flask import Blueprint, request
 
 from auth.decorater import login_required
 from emotion.emotion_services import get_emotion_doc_and_muzigi_message
-import chat_services
 from message import message_services
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
