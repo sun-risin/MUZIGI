@@ -1,9 +1,8 @@
-from flask import current_app
 from extensions import db, FieldFilter
 from backend.app.domains.user.user_schema import RegisterUserSchema, UserSchema
 from app.common.exception.customException import ErrorCode, CustomException
+import jwt_provider
 
-import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 from backend.app.domains.chat.chat_routes import create_chat
 
@@ -77,9 +76,7 @@ def get_token_and_user_info(login_data):
     # 비밀번호 일치 확인
     password_chk = check_password_hash(doc_password, password)
     if password_chk:    
-        userToken = jwt.encode({ # 로그인 토큰
-            'userDocId':user_docId, 'nickname':doc_nickname},
-            current_app.config['MUZIGI_JWT_KEY'], algorithm= 'HS256') 
+        userToken = jwt_provider.generate_token(user_docId, doc_nickname)
         
         response_data = {
             "userToken": userToken,
