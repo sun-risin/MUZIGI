@@ -16,12 +16,14 @@ class Config:
 # 환경별 설정
 # 개발
 class DevConfig(Config):
+    DB_CREDENTIAL_PATH = os.getenv("DB_CREDENTIAL_PATH", "firebase/serviceAccountKey.json")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "http://127.0.0.1:5173")
     CORS_RESOURCES = {r"/*": {"origins": FRONTEND_URL}}
     DEBUG = True
     
 # 배포
-class ProdConfig(Config):
+class ProdConfig(Config):    
+    DB_CREDENTIAL_PATH = os.getenv("DB_CREDENTIAL_PATH", "/home/ubuntu/muzigi/firebase/serviceAccountKey.json")
     FRONTEND_URL = os.getenv("FRONTEND_URL", "https://muzigi.vercel.app")
     CORS_RESOURCES = {r"/*": {"origins": FRONTEND_URL}}
     DEBUG = False
@@ -36,3 +38,5 @@ def get_flask_env():
     
     if env not in config_by_env: # 안전장치...
         raise RuntimeError(f"Invalid FLASK_ENV : {env}")
+    
+    return env
