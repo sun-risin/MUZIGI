@@ -1,8 +1,10 @@
-from extensions import db
+from flask import current_app
+from extensions import db, FieldFilter
 from backend.app.domains.user.user_schema import RegisterUserSchema, UserSchema
 from app.common.exception.customException import ErrorCode, CustomException
 
-from werkzeug.security import generate_password_hash
+import jwt
+from werkzeug.security import generate_password_hash, check_password_hash
 from backend.app.domains.chat.chat_routes import create_chat
 
 # --- 전역변수
@@ -20,7 +22,7 @@ def register_user(user_data):
     nickname = user_data["nickname"]
     
     # 아이디 중복 체크
-    user_doc = db.collection("users").where("userId", "==", userId).stream()
+    user_doc = db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
     if any(user_doc):
         raise CustomException(ErrorCode.DUPLICATE_USER)
 
@@ -48,3 +50,45 @@ def register_user(user_data):
     user_errors = user_schema.validate(new_user_doc)
     if user_errors:
         raise CustomException(ErrorCode.FAILED_REGISTER_USER)
+    
+# --- 로그인
+def get_token_and_user_info(login_data):
+    # 입력값 유효성 검사
+    login_data["nickname"] = "for_validate"    # 유효성 검사로 인해 닉네임 채워놓음
+    
+    info_errors = user_schema.validate(login_data)
+    if info_errors:
+        raise CustomException(ErrorCode.UNVALID_LOGIN_INFO)
+    
+    # 회원 정보 조회
+    userId = login_data["userId"]
+    password = login_data["password"]
+    
+    user_doc = db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
+    if not user_doc:
+        raise CustomException(ErrorCode.FAILED_LOGIN)
+    
+    user_info = user_doc[0].to_dict()
+    user_docId = user_info["userDocId"]
+    doc_password = user_info["password"]
+    doc_nickname = user_info["nickname"]
+    doc_firstChatId = user_info["chatIds"][0]
+    
+    # 비밀번호 일치 확인
+    password_chk = check_password_hash(doc_password, password)
+    if password_chk:    
+        userToken = jwt.encode({ # 로그인 토큰
+            'userDocId':user_docId, 'nickname':doc_nickname},
+            current_app.config['MUZIGI_JWT_KEY'], algorithm= 'HS256') 
+        
+        response_data = {
+            "userToken": userToken,
+            "nickname" : doc_nickname,          # 뮤지기 첫 버블에 나타낼 닉네임
+            "firstChatId" : doc_firstChatId,    # 채팅 첫 아이디 - 로그인 시 첫 채팅으로 자동 로드
+        }
+        
+        return response_data
+    
+    else:               
+        # 비밀번호 다름 => 로그인 실패
+        raise CustomException(ErrorCode.FAILED_LOGIN)

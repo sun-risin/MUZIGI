@@ -8,7 +8,7 @@ class ErrorCode(Enum):
     UNVALID_LOGIN_INFO = ("4_001_UNVALID_LOGIN_INFO", "유효하지 않은 로그인 입력값", 400)
     
     # --- 401
-    WRONG_LOGIN_INFO = ("100_WRONG_LOGIN_INFO", "아이디 혹은 비밀번호가 틀림", 401)
+    FAILED_LOGIN = ("100_FAILED_LOGIN", "로그인 실패", 401)
     
     # --- 409
     DUPLICATE_USER = ("900_DUPLICATE_USER", "동일 아이디 존재", 409)
