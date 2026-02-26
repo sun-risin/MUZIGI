@@ -14,6 +14,9 @@ class ErrorCode(Enum):
     EXPIRED_TOKEN = ("103_EXPIRED_TOKEN", "토큰 유효기간 만료", 401)
     INVALID_TOKEN = ("104_INVALID_TOKEN", "유효하지 않은 토큰", 401)
     
+    # --- 403
+    NOT_CHAT_OWNER = ("300_NOT_CHAT_OWNER", "채팅 주인이 아님", 403)
+    
     # --- 409
     DUPLICATE_USER = ("900_DUPLICATE_USER", "동일 아이디 존재", 409)
     
@@ -30,6 +33,7 @@ class ErrorCode(Enum):
     WRONG_TRACK_INFO = ("009_WRONG_TRACK_INFO", "잘못된 음악 정보 (정보 누락 등)", 500)
     USER_MESSAGE_ERR = ("0010_USER_MESSAGE_ERR", "사용자 메시지 생성 및 저장 중 에러 발생", 500)
     MUZIGI_MESSAGE_ERR = ("0011_MUZIGI_MESSAGE_ERR", "뮤지기 메시지 생성 및 저장 중 에러 발생", 500)
+    FAILED_LOAD_MESSAGES = ("0012_FAILED_LOAD_MESSAGES", "메시지 기록 로드 실패", 500)
     
     # --- 생성자 메서드
     def __init__(self, code: str, message: str, status: int):
