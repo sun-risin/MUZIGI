@@ -1,12 +1,12 @@
 from flask import Flask
-from config import get_flask_env, config_by_env
+from .config import get_flask_env, config_by_env
 from flask_cors import CORS
-from extensions import init_firestore
+from .extensions import init_firestore
 
-from backend.app.domains.auth import auth_routes
-from backend.app.domains.chat import chat_routes
-from backend.app.domains.spotify import forSpotify_routes
-from backend.app.domains.playlist import playlist_routes
+from .domains.auth import auth_routes
+from .domains.chat import chat_routes
+from .domains.spotify import forSpotify_routes
+from .domains.playlist import playlist_routes
 
 def create_app():    
     # Flask 앱 설정
@@ -25,6 +25,8 @@ def create_app():
         raise RuntimeError("CORS_RESOURCES is not set")
     if not app.config["CORS_SUPPORTS_CREDENTIALS"]:
         raise RuntimeError("CORS_SUPPORTS_CREDENTIALS is not set")
+    if not app.config["DB_CREDENTIAL_PATH"]:
+        raise RuntimeError("DB_CREDENTIAL_PATH is not set")
     
     # CORS 적용   
     CORS(app,
@@ -33,7 +35,7 @@ def create_app():
     
     # --- extension ---
     # DB
-    init_firestore()
+    init_firestore(app)
         
     # --- Blueprint 등록 ---        
     app.register_blueprint(auth_routes.auth_blp)            # auth_routes 
