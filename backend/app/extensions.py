@@ -11,7 +11,7 @@ def init_firestore(app):
     global db
     
     if not firebase_admin._apps:
-        cred_path = "/home/ubuntu/muzigi/firebase/serviceAccountKey.json"
+        cred_path = app.config["DB_CREDENTIAL_PATH"]
 
         if not os.path.exists(cred_path):
             raise RuntimeError(f"Firebase credential file not found: {cred_path}")
