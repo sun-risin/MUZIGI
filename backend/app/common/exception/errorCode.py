@@ -21,6 +21,10 @@ class ErrorCode(Enum):
     UNKNOWN_ERR = ("000_UNKNOWN_ERR", "알 수 없는 서버 내부 에러 발생", 500)
     FAILED_CREATE_CHAT = ("001_FAILED_CREATE_CHAT", "채팅 생성 중 에러 발생", 500)
     FAILED_REGISTER_USER = ("002_FAILED_REGISTER_USER", "회원가입 정보 저장 중 에러 발생", 500)
+    FAILED_EMOTION_MAPPING = ("003_FAILED_EMOTION_MAPPING", "잘못된 감정값 - 문서 ID 매핑 실패", 500)
+    FAILED_LOAD_EMOTION_DOC = ("004_FAILED_LOAD_EMOTION_DOC", "감정 문서 로드 실패", 500)
+    FAILED_LOAD_TRACK_TRAITS = ("005_FAILED_LOAD_TRACK_TRAITS", "음악 특성 로드 실패", 500)
+    FAILED_LOAD_EMPATHY = ("006_FAILED_LOAD_EMPATHY", "감정 공감 멘트 로드 실패", 500)
     
     # --- 생성자 메서드
     def __init__(self, code: str, message: str, status: int):
