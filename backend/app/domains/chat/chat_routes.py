@@ -1,12 +1,13 @@
 from flask import Blueprint, request
 
 from common.apiResponse import ApiResponse
+from common.exception.customException import ErrorCode, CustomException
+
 from auth.decorater import login_required
 from chat_services import emotion_select_get_recommend
+from message.message_services import get_messages
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
-
-# TODO - UI 반영값 제공
 
 # 감정 선택 → 음악 추천
 @chat_blp.route("/message", methods=["POST"])
@@ -30,28 +31,16 @@ def messages(curr_user):
 @chat_blp.route("/<chatId>/messages", methods=["GET"])
 @login_required
 def chat_show_messages(curr_user, chatId):
-    if not curr_user:
-        return jsonify({"message": "사용자 토큰 없음"}), 401
+    # 채팅 주인이 맞는지 확인
+    if chatId not in curr_user["chatIds"]:
+        raise CustomException(ErrorCode.NOT_CHAT_OWNER)
     
-    try:
-        messages_ref = db.collection("Message").where("chatId", "==", chatId).order_by("created_at")
-        messages = messages_ref.stream()
-
-        message_list = []
-        for msg in messages:
-            data = msg.to_dict()
-            message_list.append({
-                "messageId": data.get("messageId"),
-                "senderType": data.get("senderType"),
-                "senderId": data.get("senderId"),
-                "content": data.get("content"),
-                "recommendTracks" : data.get("recommendTracks"),
-                "emotionName" : data.get("emotionName"),
-                "created_at": data.get("created_at")
-            })
-        
-        return jsonify({"chatId": chatId, "messages": message_list}), 200
-
-    except Exception as e:
-        print("메시지 가져오다 오류 남:", e)
-        return jsonify({"message": "메시지 가져오기 오류"}), 500
+    # 메시지 모음 리스트 받아오기
+    message_list = get_messages(chatId) 
+    
+    return ApiResponse.success(
+        status=200, message="채팅 기록 가져오기 성공",
+        data={
+            "chatId": chatId,
+            "messages": message_list
+        })

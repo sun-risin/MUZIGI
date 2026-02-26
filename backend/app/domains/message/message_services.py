@@ -63,3 +63,20 @@ def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
         raise CustomException(ErrorCode.MUZIGI_MESSAGE_ERR)
     
     return content
+
+# 채팅방의 메시지 기록 리스트 반환
+def get_messages(chatId):
+    try:
+        messages = (db.collection("Message")
+                    .where("chatId", "==", chatId).order_by("created_at").stream())
+
+        message_list = []
+        for msg in messages:
+            data = msg.to_dict()
+            data.pop(chatId)
+            
+            message_list.append(data)
+    except:
+        raise CustomException(ErrorCode.FAILED_LOAD_MESSAGES)
+        
+    return message_list
