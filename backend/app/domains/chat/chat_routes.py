@@ -1,9 +1,8 @@
 from flask import Blueprint, request
 
+from common.apiResponse import ApiResponse
 from auth.decorater import login_required
-from emotion.emotion_services import get_muzigi_message_config
-from message.message_services import user_save_message, MUZIGI_save_message
-from track.track_services import tracks_recommend
+from chat_services import emotion_select_get_recommend
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
 
@@ -16,36 +15,15 @@ def messages(curr_user):
     
     data = request.get_json()
     emotionName = data["emotionName"]
-    chat_list = curr_user["chatIds"]
     user_docId = curr_user["userDocId"]
+    chat_list = curr_user["chatIds"]
     
-    # --- 사용자 메시지 ---
-    try:
-        user_content = user_save_message(user_docId, chat_list[0], emotionName) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
-    except:
-        return jsonify({"message": "사용자 버블 저장 중 오류 발생"}), 500
+    # 반환 데이터
+    response_data = emotion_select_get_recommend(emotionName, user_docId, chat_list)
     
-    
-    # --- 뮤지기 메시지 ---
-    # 감정 문서, 뮤지기 공감 멘트, 추천 음악 특성값 받기
-    muzigi_ment, track_traits = get_muzigi_message_config(emotionName)
-    
-    # 추천 음악 리스트 받기
-    recommend_tracks = tracks_recommend(track_traits)
-    
-    try:
-        muzigi_content = MUZIGI_save_message(chat_list[0], emotionName, muzigi_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
-    except:
-        return jsonify({"message": "뮤지기 메시지 저장 오류 발생"}), 500
-    
-    
-    # --- 로직 모두 잘 돌아감 ---
-    return jsonify({
-        "message": "버블 테스트 성공\n",
-        "user" : user_content,
-        "MUZIGI" : muzigi_content,
-        "recommendTracks" : recommend_tracks # 직접 넘겨주기도 함
-    }), 200
+    return ApiResponse.success(
+        status=201, message="뮤지기와 채팅 성공", 
+        data=response_data)
     
 
 # 채팅 기록 띄우기
