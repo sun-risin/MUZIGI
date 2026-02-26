@@ -28,6 +28,8 @@ class ErrorCode(Enum):
     FAILED_FILTERING_TRACKS = ("007_FAILED_FILTERING_TRACKS", "특성값에 맞는 음악 필터링 중 에러 발생", 500)
     FAILED_SAMPLING_TRACKS = ("008_FAILED_SAMPLING_TRACKS", "추천 음악 샘플링 실패", 500)
     WRONG_TRACK_INFO = ("009_WRONG_TRACK_INFO", "잘못된 음악 정보 (정보 누락 등)", 500)
+    USER_MESSAGE_ERR = ("0010_USER_MESSAGE_ERR", "사용자 메시지 생성 및 저장 중 에러 발생", 500)
+    MUZIGI_MESSAGE_ERR = ("0011_MUZIGI_MESSAGE_ERR", "뮤지기 메시지 생성 및 저장 중 에러 발생", 500)
     
     # --- 생성자 메서드
     def __init__(self, code: str, message: str, status: int):

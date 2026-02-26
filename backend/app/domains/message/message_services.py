@@ -58,4 +58,8 @@ def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
         "created_at": firestore.SERVER_TIMESTAMP
     })
     
+    error = message_schema.validate(new_message)
+    if error:
+        raise CustomException(ErrorCode.MUZIGI_MESSAGE_ERR)
+    
     return content
