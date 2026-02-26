@@ -1,9 +1,8 @@
-from flask import request, current_app
+from flask import request
 from extensions import db
 from app.common.exception.customException import ErrorCode, CustomException
 import jwt_provider
 
-import jwt
 from jwt import ExpiredSignatureError, InvalidTokenError
 from functools import wraps
 
