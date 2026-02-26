@@ -12,12 +12,9 @@ def emotion_trackTraits(emotion_docData):
     
     try:
         emo_traits = {
-            "danceabilityMin" : f"{track_traits['danceabilityMin']}",
-            "danceabilityMax" : f"{track_traits['danceabilityMax']}",
-            "energyMin" : f"{track_traits['energyMin']}",
-            "energyMax" : f"{track_traits['energyMax']}",
-            "valenceMin" : f"{track_traits['valenceMin']}",
-            "valenceMax" : f"{track_traits['valenceMax']}"
+            "danceability" : [track_traits['danceabilityMin'], track_traits['danceabilityMax']],
+            "energy" : [track_traits['energyMin'], track_traits['energyMax']],
+            "valence" : [track_traits['valenceMin'], track_traits['valenceMax']]
         }
     except:
         raise CustomException(ErrorCode.FAILED_LOAD_TRACK_TRAITS)
@@ -35,8 +32,8 @@ def emotion_empathy(emotion_docData):
         
     return empathy_ment
 
-# 감정 문서 및 뮤지기 메시지 구성 반환
-def get_emotion_doc_and_muzigi_message(emotionName):
+# 뮤지기 메시지 구성 반환
+def get_muzigi_message_config(emotionName):
     # 감정 선택, 문서 찾기
     docId = EmotionMapping.kor_to_eng(emotionName)
     if docId == "wrong":
@@ -50,4 +47,4 @@ def get_emotion_doc_and_muzigi_message(emotionName):
     muzigi_ment = emotion_empathy(emotion_doc)
     track_traits = emotion_trackTraits(emotion_doc)
 
-    return emotion_doc.to_dict(), muzigi_ment, track_traits
+    return muzigi_ment, track_traits
