@@ -1,19 +1,18 @@
 from flask import Blueprint, request
 
 from auth.decorater import login_required
-from emotion.emotion_services import get_emotion_doc_and_muzigi_message
-from message import message_services
+from emotion.emotion_services import get_muzigi_message_config
+from message.message_services import user_save_message, MUZIGI_save_message
+from track.track_services import tracks_recommend
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
 
 # TODO - UI 반영값 제공
 
-# 채팅 - 감정 선택 → 음악 추천
+# 감정 선택 → 음악 추천
 @chat_blp.route("/message", methods=["POST"])
 @login_required
 def messages(curr_user):
-    if not curr_user:
-        return jsonify({"message": "사용자 토큰 없음"}), 401
     
     data = request.get_json()
     emotionName = data["emotionName"]
@@ -29,14 +28,10 @@ def messages(curr_user):
     
     # --- 뮤지기 메시지 ---
     # 감정 문서, 뮤지기 공감 멘트, 추천 음악 특성값 받기
-    emotion_doc, muzigi_ment, track_traits = get_emotion_doc_and_muzigi_message(emotionName)
+    muzigi_ment, track_traits = get_muzigi_message_config(emotionName)
     
     # 추천 음악 리스트 받기
-    recommend_tracks = tracks_recommend(emotion_doc, track_traits)
-    if recommend_tracks is None :
-        return jsonify({"message": "추천 음악 리스트 생성 실패"}), 500
-    if type(recommend_tracks) is not list:
-        return jsonify({"message": f'{recommend_tracks}'}), 500
+    recommend_tracks = tracks_recommend(track_traits)
     
     try:
         muzigi_content = MUZIGI_save_message(chat_list[0], emotionName, muzigi_ment, recommend_tracks) # TODO - 일단 채팅 1개인 상태, 추후 변경해야 됨
