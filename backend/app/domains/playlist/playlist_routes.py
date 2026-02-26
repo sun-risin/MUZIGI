@@ -1,10 +1,10 @@
 from flask import Blueprint, request, jsonify
-from firebase_admin import firestore
-from backend.app.domains.auth.auth_routes import login_required
+from ...extensions import db
+from ..auth.decorater import login_required
 import requests
 
 # 서비스 레이어의 함수들 import
-from backend.app.domains.playlist.playlist_services import (spotify_getCurrentUser,
+from .playlist_services import (spotify_getCurrentUser,
                                             spotify_createPlaylist,
                                             spotify_getUserPlaylist,
                                             spotify_addItem,
@@ -15,7 +15,6 @@ from backend.app.domains.playlist.playlist_services import (spotify_getCurrentUs
                                             DB_getHistory)
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
-db = firestore.client()
     
 # --- 뮤지기 서비스 API들
 # 재생목록 생성 API

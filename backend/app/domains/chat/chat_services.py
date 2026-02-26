@@ -1,10 +1,10 @@
-from extensions import db, firestore
-from common.exception.customException import ErrorCode, CustomException
-from chat_schema import ChatSchema
+from ...extensions import db, firestore
+from ...common.exception.customException import ErrorCode, CustomException
+from .chat_schema import ChatSchema
 
-from emotion.emotion_services import get_muzigi_message_config
-from message.message_services import user_save_message, MUZIGI_save_message
-from track.track_services import tracks_recommend
+from ..emotion.emotion_services import get_muzigi_message_config
+from ..message.message_services import user_save_message, MUZIGI_save_message
+from ..track.track_services import tracks_recommend
 
 chat_schema = ChatSchema()
 

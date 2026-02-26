@@ -1,7 +1,7 @@
 from flask import request
-from extensions import db
-from app.common.exception.customException import ErrorCode, CustomException
-import jwt_provider
+from ...extensions import db
+from ...common.exception.customException import ErrorCode, CustomException
+from .jwt_provider import extract_token
 
 from jwt import ExpiredSignatureError, InvalidTokenError
 from functools import wraps
@@ -18,7 +18,7 @@ def login_required(func):
 
         # TODO - 유효기간 추가 논의
         try:
-            userDocId = jwt_provider.extract_token(userToken)           # payload에서 사용자 문서 ID 까줌
+            userDocId = extract_token(userToken)           # payload에서 사용자 문서 ID 까줌
             
             user_doc = db.collection("users").document(userDocId).get()
             if not user_doc.exists: 

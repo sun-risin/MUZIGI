@@ -1,6 +1,6 @@
 from flask import current_app
-from common.apiResponse import ApiResponse
-from customException import CustomException
+from ...common.apiResponse import ApiResponse
+from .customException import CustomException
 
 # custom exception 핸들링
 @current_app.errorhandler(CustomException)

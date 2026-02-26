@@ -1,8 +1,8 @@
 from flask import Blueprint, request
 
-from auth_services import register_user, get_token_and_user_info
-from app.common.apiResponse import ApiResponse
-from decorater import login_required
+from .auth_services import register_user, get_token_and_user_info
+from ...common.apiResponse import ApiResponse
+from .decorater import login_required
 
 auth_blp = Blueprint("auth", __name__, url_prefix="/api/auth")
 

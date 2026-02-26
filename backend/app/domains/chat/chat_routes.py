@@ -1,11 +1,11 @@
 from flask import Blueprint, request
 
-from common.apiResponse import ApiResponse
-from common.exception.customException import ErrorCode, CustomException
+from ...common.apiResponse import ApiResponse
+from ...common.exception.customException import ErrorCode, CustomException
 
-from auth.decorater import login_required
-from chat_services import emotion_select_get_recommend
-from message.message_services import get_messages
+from ..auth.decorater import login_required
+from ..message.message_services import get_messages
+from .chat_services import emotion_select_get_recommend
 
 chat_blp = Blueprint("chat", __name__, url_prefix="/api/chat")
 

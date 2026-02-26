@@ -5,7 +5,6 @@ import string
 import random
 import requests
 from flask import Blueprint, redirect, request, session, jsonify, make_response
-from extensions import db
 
 track_blp = Blueprint("track", __name__, url_prefix="/api/spotify")
 

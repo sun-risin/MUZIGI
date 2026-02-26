@@ -1,6 +1,6 @@
-from extensions import db
-from common.exception.customException import ErrorCode, CustomException
-from emotionMapping import EmotionMapping
+from ...extensions import db
+from ...common.exception.customException import ErrorCode, CustomException
+from .emotionMapping import EmotionMapping
 
 import random
 

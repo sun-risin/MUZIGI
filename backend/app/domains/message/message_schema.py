@@ -1,5 +1,5 @@
 from marshmallow import Schema, fields
-from track.track_schema import TrackInfoSchema
+from ..track.track_schema import TrackInfoSchema
 
 class MessageSchema(Schema):
     chatId = fields.String()

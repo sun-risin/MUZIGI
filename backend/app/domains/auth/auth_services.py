@@ -1,10 +1,10 @@
-from extensions import db, FieldFilter
-from user.user_schema import RegisterUserSchema, UserSchema
-from common.exception.customException import ErrorCode, CustomException
-import jwt_provider
+from ...extensions import db, FieldFilter
+from ..user.user_schema import RegisterUserSchema, UserSchema
+from ...common.exception.customException import ErrorCode, CustomException
+from .jwt_provider import generate_token
 
+from ..chat.chat_services import create_chat
 from werkzeug.security import generate_password_hash, check_password_hash
-from chat.chat_services import create_chat
 
 # --- 전역변수
 register_user_schema = RegisterUserSchema() # 회원가입 입력값 validate용 schema
@@ -76,7 +76,7 @@ def get_token_and_user_info(login_data):
     # 비밀번호 일치 확인
     password_chk = check_password_hash(doc_password, password)
     if password_chk:    
-        userToken = jwt_provider.generate_token(user_docId, doc_nickname)
+        userToken = generate_token(user_docId, doc_nickname)
         
         response_data = {
             "userToken": userToken,

@@ -1,7 +1,7 @@
-from extensions import db, firestore
-from common.exception.customException import ErrorCode, CustomException
-from message_schema import MessageSchema
-from emotion.emotionMapping import EmotionMapping
+from ...extensions import db, firestore
+from ...common.exception.customException import ErrorCode, CustomException
+from .message_schema import MessageSchema
+from ..emotion.emotionMapping import EmotionMapping
 
 import random
 

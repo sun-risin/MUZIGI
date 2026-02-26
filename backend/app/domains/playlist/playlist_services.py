@@ -1,7 +1,7 @@
-from backend.app.domains.playlist.playlist_schema import PlaylistSchema
-from backend.app.domains.track.track_schema import TrackInfoSchema 
+from ..playlist.playlist_schema import PlaylistSchema
+from ..track.track_schema import TrackInfoSchema 
 import requests
-from extensions import db
+from ...extensions import db
 
 playlist_schema = PlaylistSchema()
 trackInfo_schema = TrackInfoSchema()

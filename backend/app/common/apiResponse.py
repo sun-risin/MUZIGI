@@ -2,7 +2,7 @@
 
 from flask import jsonify
 from typing import Any
-from backend.app.common.exception.errorCode import ErrorCode  
+from ..common.exception.errorCode import ErrorCode  
 
 """
 {
