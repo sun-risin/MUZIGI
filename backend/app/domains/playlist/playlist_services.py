@@ -1,20 +1,17 @@
+import requests
+
+from ...extensions import db
 from ..playlist.playlist_schema import PlaylistSchema
 from ..track.track_schema import TrackInfoSchema 
-import requests
-from ...extensions import db
+from ..emotion.emotionMapping import EmotionMapping
 
 playlist_schema = PlaylistSchema()
 trackInfo_schema = TrackInfoSchema()
 
-# --- 전역 변수
-emotions_mapping = {
-        "happiness" : "행복",
-        "excited" : "신남",
-        "aggro" : "화남",
-        "sorrow" : "슬픔",
-        "nervous" : "긴장" } # 감정값 영어(key) 한글(value) 딕셔너리
+# --- 전역 변수 (spotify API url)
+SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
 
-# --- spotify API 사용 함수
+# --- 사용된 spotify API 설명
 """
     1. 사용자 프로필 get API - **Get Current User's Profile**
         - 호출 예시
@@ -71,19 +68,23 @@ emotions_mapping = {
         => 반환값 중 total -> 들어있는 음악 개수 / items - 들어있는 요소, track(~) 음악 아이디, 제목, 가수 이름
 """
     
-# 사용자 프로필 가져오기 API -> spotify 사용자 id 반환
+# 사용자 프로필 가져오기 API : spotify 사용자 id 반환
 def spotify_getCurrentUser(spotifyToken):
-    SPOTIFY_GET_PROFILE_URL = "https://api.spotify.com/v1/me"
-    profile_header = { "Authorization": f"Bearer {spotifyToken}" }
+    profile_header = {
+        "Authorization": f"Bearer {spotifyToken}" 
+        }
     try:
         get_profile_response = requests.get(SPOTIFY_GET_PROFILE_URL, headers=profile_header)
         get_profile_response.raise_for_status()
         
-        spotifyId = get_profile_response.json().get("id") # spotify 고유 id 저장
+        # 사용자의 spotify 고유 회원 id 저장
+        spotifyProfileId = get_profile_response.json().get("id") 
         
-    except requests.exceptions.HTTPError : raise # spotify 관련 에러
+    except requests.exceptions.HTTPError : 
+        raise # spotify 관련 에러 발생
 
-    return spotifyId # spotify 사용자 id 반환
+    return spotifyProfileId
+    
     
 # 재생목록 생성 API -> 생성한 재생목록 정보 보냄 (key - 감정(영어), value - 재생목록 ID)
 def spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name):    
@@ -95,7 +96,7 @@ def spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name):
     new_playlists_info = {}
     try:
         for new in new_playlists_name:
-            emotion = emotions_mapping.get(new)
+            emotion = EmotionMapping.eng_to_kor(new)
             create_data = {
                 "name": f"{emotion}",
                 "description": f"뮤지기 - 감정 {emotion}에 맞는 플리",
@@ -117,6 +118,12 @@ def spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name):
 # 재생목록 가져오기 API - spotify에서 재생목록 존재 여부 확인
 # 존재하는 재생목록 정보값 반환 (DB에는 없는 게 있다면 따로 저장해 반환)
 def spotify_getUserPlaylist(spotifyToken, userDocId):
+    emotions_mapping = {
+        "happiness" : "행복",
+        "excited" : "신남",
+        "aggro" : "화남",
+        "sorrow" : "슬픔",
+        "nervous" : "긴장" } # 감정값 영어(key) 한글(value) 딕셔너리
     exist_playlists_info = {} # spotify, DB에 있는 재생목록
     no_db_playlists_info = {} # spotify에 있고, DB에는 없는 재생목록
     
