@@ -1,6 +1,6 @@
 from ...extensions import db, FieldFilter
 from ..user.user_schema import RegisterUserSchema, UserSchema
-from ...common.exception.customException import ErrorCode, CustomException
+from ...common.exception.customException import ErrorCode, CustomException, ValidateException
 from .jwt_provider import generate_token
 
 from ..chat.chat_services import create_chat
@@ -14,7 +14,7 @@ user_schema = UserSchema()                  # 회원 저장값 validate용 schem
 def register_user(user_data):
     info_errors = register_user_schema.validate(user_data)
     if info_errors: # 회원가입 시 비번이나 닉네임 규칙에 맞지 않음
-        raise CustomException(ErrorCode.INVALID_REGISTER_INFO)
+        raise ValidateException("유효하지 않은 회원가입 입력값")
     
     userId = user_data["userId"]
     password = user_data["password"]
@@ -57,7 +57,7 @@ def get_token_and_user_info(login_data):
     
     info_errors = register_user_schema.validate(login_data)
     if info_errors:
-        raise CustomException(ErrorCode.INVALID_LOGIN_INFO)
+        raise ValidateException("유효하지 않은 로그인 입력값")
     
     # 회원 정보 조회
     userId = login_data["userId"]
