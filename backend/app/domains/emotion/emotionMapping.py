@@ -13,6 +13,14 @@ eng_key = {val : key for key, val in kor_key.items()}
 class EmotionMapping:
     
     @staticmethod
+    def get_kor_key():
+        return kor_key
+    
+    @staticmethod
+    def get_eng_key():
+        return eng_key
+    
+    @staticmethod
     def kor_to_eng(kor):
         return kor_key.get(kor, "wrong")
     
