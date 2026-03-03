@@ -57,7 +57,7 @@ def DB_update_about_playlist(new_playlists_info: dict, userDocId: str, new_playl
                 "playlistDocId" : id
             }
             
-            tracks = new_playlists_tracks.get(f"{id}") or {}
+            tracks = new_playlists_tracks.get(f"{emotion}") or {}
             DB_record_playlist(info, tracks)
             DB_update_user_playlist(info, userDocId)
     
@@ -67,3 +67,13 @@ def DB_update_about_playlist(new_playlists_info: dict, userDocId: str, new_playl
 # 재생목록 삭제 (Playlist 컬렉션 내 문서 삭제)
 def DB_delete_playlist(playlist_id: str):
     db.collection("Playlist").document(playlist_id).delete()
+    
+# 재생목록 내 음악 추가
+def DB_add_track(playlistDocId: str, position: int, trackInfo: dict):
+    try:
+        playlist_ref = db.collection("Playlist").document(playlistDocId)        
+        playlist_ref.update({
+            f"tracks.{str(position)}": trackInfo
+        })
+    except Exception as e: 
+        raise UnknownException(f"재생목록에 음악 추가하다가 뮤지기에서 에러 : {str(e)}")

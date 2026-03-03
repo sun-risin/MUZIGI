@@ -1,5 +1,5 @@
 from ..apiResponse import ApiResponse
-from .customException import CustomException, ValidateException, UnknownException, ErrorCode
+from .customException import CustomException, ValidateException, UnknownException, ErrorCode, SpotifyNotFoundException
 from requests.exceptions import HTTPError
 
 def register_error_handlers(app):
@@ -32,3 +32,8 @@ def register_error_handlers(app):
         return ApiResponse.error(
             status=e.response.status_code if e.response else 500,
             message=f"spotify API 처리 중 오류 발생: {str(e)}")
+        
+    @app.errorhandler(SpotifyNotFoundException)
+    def handle_spotify_notfound_error(e):
+        return ApiResponse.error(
+            status=404, message=e.message)

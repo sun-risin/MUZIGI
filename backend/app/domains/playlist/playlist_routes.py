@@ -1,11 +1,10 @@
 from flask import Blueprint, request, jsonify
 from ..auth.decorater import login_required
-import requests
 
 from ...common.apiResponse import ApiResponse
 
 # 서비스 레이어의 함수들 import
-from .playlist_usecases import create_new_playlist
+from .playlist_usecases import create_new_playlist, record_liked_track
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
     
@@ -30,12 +29,6 @@ def createPlaylist(curr_user):
 @playlist_blp.route("/<emotionName>/add", methods=["POST"])
 @login_required
 def addTrackToPlaylist(curr_user, emotionName):
-    """
-    1-2. 재생목록 존재 여부를 확인한다.
-    1-3.1. 재생목록이 존재하지 않으면 생성 API를 부르고 마저 진행된다.
-    1-3.2. 재생목록이 있다면 해당하는 감정 재생목록에 저장된다.
-           (spotify, firestore 모두 반영)
-    """
     if not curr_user:
         return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
     userDocId = curr_user.get("userDocId")
@@ -44,87 +37,9 @@ def addTrackToPlaylist(curr_user, emotionName):
     spotifyToken = request_data.get("spotifyToken")
     trackInfo = request_data.get("trackInfo") # 넣을 음악 정보 Object
     
-    # 1-2. 재생목록 존재 여부를 확인한다.
-    try:
-        exist_play, plus_db_play = spotify_getUserPlaylist(spotifyToken, userDocId) # spotify
-    except requests.exceptions.HTTPError as http_e:
-        http_error_msg = str(http_e)
-        return jsonify({"error" : f"spotify 재생목록 가져오기 오류: {http_error_msg}"}), 500
-    except Exception as e:
-        error_msg = str(e)
-        return jsonify({"error" : f"뮤지기쪽 오류: {error_msg}"}), 500
+    record_liked_track(spotifyToken, userDocId, emotionName, trackInfo, 0)
     
-    # 1-3.1. 재생목록이 존재하지 않으면 생성
-    if emotionName not in exist_play.keys(): 
-        try: # 사용자 프로필 가져오기 -> 재생목록 생성에 필요한 spotify 사용자 id 가져옴
-            spotifyId = spotify_getCurrentUser(spotifyToken)
-        except requests.exceptions.HTTPError as http_e:
-            http_error_msg = str(http_e)
-            return jsonify({"error" : f"spotify 사용자 프로필 가져오기 오류: {http_error_msg}"}), 500
-        
-        try:
-            created_play = spotify_createPlaylist(spotifyToken, spotifyId, [emotionName])
-        except requests.exceptions.HTTPError as http_e:
-            http_error_msg = str(http_e)
-            return jsonify({"error" : f"spotify 재생목록 생성 오류: {http_error_msg}"}), 500
-        except Exception as e:
-            error_msg = str(e)
-            return jsonify({"error" : f"뮤지기쪽 문제로 재생목록 생성 실패: {error_msg}"}), 500
-    
-        new_playlists_info = {**plus_db_play, **created_play}
-        try:
-            DB_update(new_playlists_info, userDocId)
-        except ValueError as ve: 
-            return jsonify({"error" : str(ve)}), 400  # 유효하지 않은 입력값 - validate 오류
-        except PermissionError as pe: 
-            return jsonify({"error" : str(pe)}), 401  # 뮤지기 사용자 토큰 문제
-        except Exception as e:
-            error_msg = str(e)
-            return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
-    
-    # 데이터베이스 확인 (생성한 내용 잘 저장됐는지)
-    try: 
-        exist_db_play = DB_checkPlaylist(userDocId)
-    except Exception as e:
-        error_msg = str(e)
-        return jsonify({"error" : f"DB에 존재하는 재생목록 보다가 오류: {error_msg}"}), 500
-    
-    if emotionName not in exist_db_play.keys():
-        return jsonify({"error" : "분명 생성하고 저장도 했을 텐데 DB에 없음..."}), 500
-     
-    
-    # --- 해당하는 재생목록 있음, 음악 추가   
-    playlist_id = exist_db_play.get(emotionName) 
-    
-    try:
-        position, items = spotify_getItems(spotifyToken, playlist_id)
-    except requests.exceptions.HTTPError as http_e:
-        return jsonify({"error" : f"spotify에서 재생목록 내역 가져오기 오류 : {str(http_e)}"}), 500
-    
-    if position >= 50:
-        return jsonify({"error" : "재생목록 내 음악 개수가 너무 많습니다. (최대 50개)"}), 400
-    
-    try:
-        spotify_tracks = DB_checkHistory(playlist_id, items)
-    except ValueError as ve: return jsonify({"error" : f"{ve}"}), 400
-    except Exception as e : return jsonify({"error" : f"재생목록내역 spotify랑 db 비교하다가 오류: {e}"}), 500
-    
-    # trackId는 다른데 곡이 같은 경우가 있어서 제목, 가수로 비교함
-    existing_pairs = {(v["title"], v["artist"]) for v in spotify_tracks.values()}
-    if (trackInfo.get("title"), trackInfo.get("artist")) in existing_pairs:
-        return jsonify({"message": "이미 있는 음악이라 추가 안함!"}), 204
-    
-    try:
-        spotify_addItem(playlist_id, spotifyToken, trackInfo, position)
-    except ValueError as ve:
-        return jsonify({"error" : f"{ve}"}), 400
-    except requests.exceptions.HTTPError as http_e:
-        return jsonify({"error" : f"spotify에서 재생목록에 음악 추가 실패: {str(http_e)}"}), 500
-    except Exception as e:
-        return jsonify({"error": f"뮤지기쪽 문제로 음악 추가 실패 : {str(e)}"}), 500
-    
-    
-    return jsonify({"message" : "음악 추가 성공!"}), 200
+    return ApiResponse.success(201, "음악 추가 성공")
 
 
 # 재생목록 조회 API - 재생목록 내역을 반환해줌
