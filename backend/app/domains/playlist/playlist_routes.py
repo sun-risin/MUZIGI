@@ -1,18 +1,11 @@
 from flask import Blueprint, request, jsonify
-from ...extensions import db
 from ..auth.decorater import login_required
 import requests
 
+from ...common.apiResponse import ApiResponse
+
 # 서비스 레이어의 함수들 import
-from .playlist_services import (spotify_getCurrentUser,
-                                            spotify_createPlaylist,
-                                            spotify_getUserPlaylist,
-                                            spotify_addItem,
-                                            spotify_getItems,
-                                            DB_checkPlaylist,
-                                            DB_update,
-                                            DB_checkHistory,
-                                            DB_getHistory)
+from .playlist_usecases import create_new_playlist
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
     
@@ -21,104 +14,16 @@ playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
 @playlist_blp.route("/new", methods=["POST"])
 @login_required
 def createPlaylist(curr_user):
-    """
-    1-2. 재생목록 존재 여부를 확인한다.
-    1-3.1. 이미 감정 별 재생목록이 있다면 종료된다.
-    1-3.2. 재생목록이 없는 게 있다면 새로 생성된다.
-    """
-    if not curr_user:
-        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
     userDocId = curr_user.get("userDocId")   
-    
-    new_playlists_name = [
-        "happiness", "excited", "aggro", "sorrow", "nervous"] 
 
-    # --- 여기서부터 spotify API 사용    
-    request_data = request.get_json() # body - spotify의 액세스 토큰, spotifyToken
-    spotifyToken = request_data["spotifyToken"]    
+    request_data = request.get_json()
+    spotifyToken = request_data["spotifyToken"]    # spotify의 액세스 토큰
     
-    # 1-2. 재생목록 존재 여부 확인 (Spotify)
-    try:
-        exist_play, plus_db_play = spotify_getUserPlaylist(spotifyToken, userDocId) # spotify
-    except requests.exceptions.HTTPError as http_e:
-        http_error_msg = str(http_e)
-        return jsonify({"error" : f"spotify 재생목록 가져오기 오류: {http_error_msg}"}), 500
-    except Exception as e:
-        error_msg = str(e)
-        return jsonify({"error" : f"뮤지기쪽 오류: {error_msg}"}), 500
+    # 새 재생목록 생성 -> 생성된 플레이리스트 정보 반환
+    response_data = create_new_playlist(userDocId, spotifyToken)
     
-    if len(exist_play) >= 5: # 1-3.1. 이미 감정 별 재생목록이 다 있다.
-        return jsonify({"error" : "이미 감정 재생목록이 다 있습니다."}), 400
-    else:
-        for name in exist_play.keys():
-            new_playlists_name.remove(name)
-        for n in plus_db_play.keys():
-            new_playlists_name.remove(n)
-            
-    if len(new_playlists_name) > 0:
-        try: # 사용자 프로필 가져오기 -> 재생목록 생성에 필요한 spotify 사용자 id 가져옴
-            spotifyId = spotify_getCurrentUser(spotifyToken)
-        except requests.exceptions.HTTPError as http_e:
-            http_error_msg = str(http_e)
-            return jsonify({"error" : f"spotify 사용자 프로필 가져오기 오류: {http_error_msg}"}), 500
-
-        try: # 1-3.2. 재생목록이 없는 게 있다면 새로 생성된다. (spotify)
-            created_playlists_info = spotify_createPlaylist(spotifyToken, spotifyId, new_playlists_name)
-        except requests.exceptions.HTTPError as http_e:
-            http_error_msg = str(http_e)
-            return jsonify({"error" : f"spotify 재생목록 생성 오류: {http_error_msg}"}), 500
-        except Exception as e:
-            error_msg = str(e)
-            return jsonify({"error" : f"뮤지기쪽 문제로 재생목록 생성 실패: {error_msg}"}), 500
-        
-    elif len(plus_db_play) > 0:
-        try:
-            DB_update(plus_db_play, userDocId)
-        except ValueError as ve: 
-            return jsonify({"error" : str(ve)}), 400  # 유효하지 않은 입력값 - validate 오류
-        except PermissionError as pe: 
-            return jsonify({"error" : str(pe)}), 401  # 뮤지기 사용자 토큰 문제
-        except Exception as e:
-            error_msg = str(e)
-            return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
-
-        return jsonify({"message" : f"재생목록 다 있는데 DB에 안 적혀 있어서 업뎃하고 끝남: {plus_db_play}"}), 200
-    
-    
-    # DB에 업뎃해야 하는 정보 정리 - 업뎃되지 않은 정보 + 새로 생성한 것의 정보
-    # 딕셔너리 언패킹 -> 동일 키값 있으면 새로 생성된 정보 기준으로 동작하게 했음
-    new_playlists_info = {**plus_db_play, **created_playlists_info}
-    
-    # --- 여기서부터 DB 조작    
-    try: # 지워야 하는 정보 확인 (이전에 갖고 있던 의미없는 재생목록 정보값)
-        delete_db_play = DB_checkPlaylist(userDocId)
-    except Exception as e:
-        error_msg = str(e)
-        return jsonify({"error" : f"DB에 존재하는 재생목록 보다가 오류: {error_msg}"}), 500
-    
-    if len(delete_db_play) > 0:
-        try: # 지워야 하는 정보 지우기
-            for playlistDocId in delete_db_play.values():
-                # Playlist 컬렉션의 문서 삭제
-                db.collection("Playlist").document(playlistDocId).delete()
-
-        except Exception as e:
-            error_msg = str(e)
-            return jsonify({"error" : f"DB에 있던 의미없는 재생목록 정보 지우다가 오류: {error_msg}"}), 500
-
-    # 업뎃할 내용, 생성한 재생목록 db에 저장하기
-    try:
-        DB_update(new_playlists_info, userDocId)
-    except ValueError as ve: 
-        return jsonify({"error" : str(ve)}), 400  # 유효하지 않은 입력값 - validate 오류
-    except PermissionError as pe: 
-        return jsonify({"error" : str(pe)}), 401  # 뮤지기 사용자 토큰 문제
-    except Exception as e:
-        error_msg = str(e)
-        return jsonify({"error" : f"재생목록 생성 내용 DB에 저장 실패 : {error_msg}"}), 500
-    
-    
-    return jsonify({"playlistIds" : new_playlists_info}), 201 # 성공!
+    return ApiResponse.success(
+        status=201, message="재생목록 생성 성공", data=response_data)
 
 
 # 선호 여부 기록 -> 재생목록 내 음악 추가 API
