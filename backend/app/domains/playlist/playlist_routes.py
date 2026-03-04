@@ -1,10 +1,10 @@
-from flask import Blueprint, request, jsonify
+from flask import Blueprint, request
 from ..auth.decorater import login_required
 
 from ...common.apiResponse import ApiResponse
 
 # 서비스 레이어의 함수들 import
-from .playlist_usecases import create_new_playlist, record_liked_track
+from .playlist_usecases import create_new_playlist, record_liked_track, get_hisotry_playlist
 
 playlist_blp = Blueprint("playlist", __name__, url_prefix="/api/playlist")
     
@@ -41,20 +41,13 @@ def addTrackToPlaylist(curr_user, emotionName):
 
 
 # 재생목록 조회 API - 재생목록 내역을 반환해줌
+# TODO - spotifyToken request body data 추가된 거 전달
 @playlist_blp.route("/<emotionName>/show", methods=["GET"])
 @login_required
-def showPlaylistHistory(curr_user, emotionName):
-    if not curr_user:
-        return jsonify({"error" : "뮤지기 사용자 토큰 없음"}), 401
+def showPlaylistHistory(curr_user, emotionName, spotifyToken):
     userDocId = curr_user.get("userDocId")
     
-    try:
-        history = DB_getHistory(userDocId, emotionName)
-    except FileNotFoundError as fe:
-        return jsonify({"error" : f"{str(fe)}"}), 400
-    except PermissionError as pe:
-        return jsonify({"error" : f"{str(pe)}"}), 401
-    except Exception as e:
-        return jsonify({"error" : f"재생목록 내역 DB 조회하다 에러남 : {str(e)}"}), 500
+    response_data = get_hisotry_playlist(userDocId, emotionName, spotifyToken)
     
-    return jsonify({"tracks" : history}), 200
+    return ApiResponse.success(
+        200, "재생목록 내역 조회 성공", response_data)

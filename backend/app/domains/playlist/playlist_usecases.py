@@ -93,3 +93,25 @@ def record_liked_track(spotifyToken: str, userDocId: str, emotionName:str, track
     
     # 1-4-2.
     DB_add_track(playlistDocId, position, trackInfo)
+    
+# 재생목록 내역 조회
+def get_hisotry_playlist(userDocId: str, emotionName: str, spotifyToken: str):
+    """
+    1-2. 재생목록 존재 여부를 확인한다.
+    1-2.1. 재생목록이 존재하지 않으면 생성 메서드를 부르고 마저 진행된다.
+    1-3. db playlist 컬렉션 내 문서 필드 내부 음악 내역 가져오기
+    """
+    
+    # --- 1-2. 재생목록 존재 여부를 확인한다. 
+    # db_user 컬렉션에 있는 재생목록 정보 {emotionName : id}
+    db_user_muzigi_playlists_info = DB_get_users_playlist(userDocId)
+    # 1-2.1.
+    if emotionName not in db_user_muzigi_playlists_info.keys():
+        create_new_playlist(userDocId, spotifyToken)
+        db_user_muzigi_playlists_info = DB_get_users_playlist(userDocId)
+        
+    # --- 1-3. db playlist 컬렉션 내 문서 필드 내부 음악 내역 가져오기
+    history = DB_get_playlist_history(userDocId, emotionName)
+    response_data = {"tracks" : history}
+    
+    return response_data
