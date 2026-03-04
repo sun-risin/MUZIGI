@@ -84,7 +84,7 @@ def record_liked_track(spotifyToken: str, userDocId: str, emotionName:str, track
     except SpotifyNotFoundException:
         if retry_cnt == 0:
             sync_spotify_playlists(playlistDocId, spotifyToken, emotionName, userDocId)
-            return record_liked_track(spotifyToken, userDocId, emotionName, trackInfo, 1)
+            return record_liked_track(spotifyToken, userDocId, emotionName, trackInfo, retry_cnt+1)
             
         raise
     
