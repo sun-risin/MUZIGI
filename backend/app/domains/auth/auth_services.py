@@ -22,8 +22,9 @@ def register_user(user_data):
     nickname = user_data["nickname"]
     
     # 아이디 중복 체크
-    user_doc = extensions.db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
-    if any(user_doc):
+    find_docs = extensions.db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
+    user_doc = next(find_docs, None)
+    if user_doc :
         raise CustomException(ErrorCode.DUPLICATE_USER)
 
     # 비밀번호 해싱
@@ -64,11 +65,12 @@ def get_token_and_user_info(login_data):
     userId = login_data["userId"]
     password = login_data["password"]
     
-    user_doc = extensions.db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
-    if not user_doc:
+    find_docs = extensions.db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
+    user_doc = next(find_docs, None)
+    if not user_doc :
         raise CustomException(ErrorCode.FAILED_LOGIN)
     
-    user_info = user_doc[0].to_dict()
+    user_info = user_doc.to_dict()
     user_docId = user_info["userDocId"]
     doc_password = user_info["password"]
     doc_nickname = user_info["nickname"]
