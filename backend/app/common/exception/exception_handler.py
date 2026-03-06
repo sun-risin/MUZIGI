@@ -7,7 +7,7 @@ def register_error_handlers(app):
     # 진짜 예상치 못한 버그... 에러 핸들링
     @app.errorhandler(Exception)
     def handle_unexpected_error(e):
-        return ApiResponse.error_byCode(ErrorCode.UNKNOWN_ERR)
+        return ApiResponse.error(status=500, message=str(e))
     
     # custom exception 핸들링
     @app.errorhandler(CustomException)
