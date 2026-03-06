@@ -1,5 +1,5 @@
 from ... import extensions
-from ...extensions import FieldFilter
+from google.cloud.firestore_v1.base_query import FieldFilter
 from ..user.user_schema import RegisterUserSchema, UserSchema
 from ...common.exception.customException import ErrorCode, CustomException, ValidateException
 from .jwt_provider import generate_token
@@ -38,19 +38,21 @@ def register_user(user_data):
     except:
         raise CustomException(ErrorCode.FAILED_CREATE_CHAT)
     
-    # Firestore에 저장
-    new_user_doc.set({
+    new_user_data = {
         "userId" : userId,                  # 사용자 설정 id
         "password" : hashed_pw,             # 암호화된 비밀번호
         "nickname" : nickname,              # 사용자 닉네임
         "userDocId" : new_user_docId,       # db 조회용 사용자 문서 id
         "chatIds": [first_chatId],          # 사용자 소유 채팅 아이디 리스트
         "playlistIds" : {}                  # 사용자 소유 감정 재생목록 아이디 딕셔너리
-    })
+    }
     
-    user_errors = user_schema.validate(new_user_doc)
+    user_errors = user_schema.validate(new_user_data)
     if user_errors:
         raise CustomException(ErrorCode.FAILED_REGISTER_USER)
+    
+    # Firestore에 저장
+    new_user_doc.set(new_user_data)
     
 # --- 로그인
 def get_token_and_user_info(login_data):

@@ -2,7 +2,6 @@
 
 import firebase_admin
 from firebase_admin import credentials, initialize_app, firestore
-from google.cloud.firestore_v1.base_query import FieldFilter
 import os
 
 # Firebase 초기화 및 Firestore 전역 객체 생성

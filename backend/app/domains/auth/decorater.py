@@ -1,5 +1,5 @@
 from flask import request
-from ...extensions import db
+from ... import extensions
 from ...common.exception.customException import ErrorCode, CustomException
 from .jwt_provider import extract_token
 
@@ -20,7 +20,7 @@ def login_required(func):
         try:
             userDocId = extract_token(userToken)           # payload에서 사용자 문서 ID 까줌
             
-            user_doc = db.collection("users").document(userDocId).get()
+            user_doc = extensions.db.collection("users").document(userDocId).get()
             if not user_doc.exists: 
                 raise CustomException(ErrorCode.INVALID_USER)
             
