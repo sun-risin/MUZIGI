@@ -9,6 +9,7 @@ import random
 message_schema = MessageSchema()
 
 # 사용자 메시지 저장 및 내용 반환. emotionName은 감정이름 (한글)
+# TODO - recommendTracks null -> [] 변경사항 전달
 def user_save_message(userDocId, chatId, emotionName):
     content = random.choice( [
         f"제 감정은 지금 \"{emotionName}\"이에요.\n지금 들으면 좋을 음악을 추천해 주세요!",
