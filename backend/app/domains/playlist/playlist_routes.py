@@ -42,10 +42,13 @@ def addTrackToPlaylist(curr_user, emotionName):
 
 # 재생목록 조회 API - 재생목록 내역을 반환해줌
 # TODO - spotifyToken request body data 추가된 거 전달
-@playlist_blp.route("/<emotionName>/show", methods=["GET"])
+@playlist_blp.route("/<emotionName>/show", methods=["POST"])
 @login_required
-def showPlaylistHistory(curr_user, emotionName, spotifyToken):
+def showPlaylistHistory(curr_user, emotionName):
     userDocId = curr_user.get("userDocId")
+    
+    request_data = request.get_json()
+    spotifyToken = request_data.get("spotifyToken")
     
     response_data = get_hisotry_playlist(userDocId, emotionName, spotifyToken)
     
