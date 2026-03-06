@@ -3,6 +3,9 @@
 from enum import Enum
 
 class ErrorCode(Enum):    
+    # --- 400
+    WRONG_EMOTION_VAL = ("4_000_WRONG_EMOTION_VAL", "잘못된 감정값 전달됨", 400)
+    
     # --- 401
     FAILED_LOGIN = ("100_FAILED_LOGIN", "로그인 실패", 401)
     NONE_TOKEN = ("101_NONE_TOKEN", "토큰 없음", 401)

@@ -2,6 +2,7 @@ from flask import Blueprint, request
 
 from ...common.apiResponse import ApiResponse
 from ...common.exception.customException import ErrorCode, CustomException
+from ..emotion.emotionMapping import EmotionMapping
 
 from ..auth.decorater import login_required
 from ..message.message_services import get_messages
@@ -16,6 +17,9 @@ def messages(curr_user):
     
     data = request.get_json()
     emotionName = data["emotionName"]
+    if EmotionMapping.kor_to_eng(emotionName) == "wrong":
+        raise CustomException(ErrorCode.WRONG_EMOTION_VAL)
+    
     user_docId = curr_user["userDocId"]
     chat_list = curr_user["chatIds"]
     
@@ -32,7 +36,7 @@ def messages(curr_user):
 @login_required
 def chat_show_messages(curr_user, chatId):
     # 채팅 주인이 맞는지 확인
-    if chatId not in curr_user["chatIds"]:
+    if chatId not in curr_user.get("chatIds"):
         raise CustomException(ErrorCode.NOT_CHAT_OWNER)
     
     # 메시지 모음 리스트 받아오기

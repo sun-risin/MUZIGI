@@ -1,4 +1,4 @@
-from ...extensions import db
+from ... import extensions
 from ...common.exception.customException import ErrorCode, CustomException
 from .emotionMapping import EmotionMapping
 
@@ -37,14 +37,14 @@ def get_muzigi_message_config(emotionName):
     # 감정 선택, 문서 찾기
     docId = EmotionMapping.kor_to_eng(emotionName)
     if docId == "wrong":
-        raise CustomException(ErrorCode.FAILED_EMOTION_MAPPING)
+        raise CustomException(ErrorCode.WRONG_EMOTION_VAL)
 
-    emotion_doc = db.collection("emotionCategory").document(docId).get()
+    emotion_doc = extensions.db.collection("emotionCategory").document(docId).get()
     if not emotion_doc.exists:
         raise CustomException(ErrorCode.FAILED_LOAD_EMOTION_DOC)
     
     # 뮤지기 버블 구성
-    muzigi_ment = emotion_empathy(emotion_doc)
-    track_traits = emotion_trackTraits(emotion_doc)
+    muzigi_ment = emotion_empathy(emotion_doc.to_dict())
+    track_traits = emotion_trackTraits(emotion_doc.to_dict())
 
     return muzigi_ment, track_traits

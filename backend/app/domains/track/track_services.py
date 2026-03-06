@@ -1,5 +1,5 @@
 from ... import extensions
-from ...extensions import FieldFilter
+from google.cloud.firestore_v1.base_query import FieldFilter
 from ...common.exception.customException import ErrorCode, CustomException
 from .track_schema import TrackInfoSchema
 

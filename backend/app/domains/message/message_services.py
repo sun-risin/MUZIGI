@@ -1,4 +1,5 @@
-from ...extensions import db, firestore
+from ... import extensions
+from firebase_admin import firestore
 from ...common.exception.customException import ErrorCode, CustomException
 from .message_schema import MessageSchema
 from ..emotion.emotionMapping import EmotionMapping
@@ -16,22 +17,24 @@ def user_save_message(userDocId, chatId, emotionName):
     ])
       
     # Firestore에 생성 및 저장
-    new_message = db.collection("Message").document()
+    new_message = extensions.db.collection("Message").document()
     new_message_docId = new_message.id
-    new_message.set({
+    new_message_data = {
         "chatId":chatId,
         "messageId":new_message_docId,
         "emotionName" : EmotionMapping.kor_to_eng(emotionName),
         "content": content,
         "senderType": True,
         "senderId": userDocId,
-        "recommendTracks": None, # 사용자는 음악 추천을 보내지 않음
+        "recommendTracks": [], # 사용자는 음악 추천을 보내지 않음
         "created_at": firestore.SERVER_TIMESTAMP
-    })
+    }
     
-    error = message_schema.validate(new_message)
+    error = message_schema.validate(new_message_data)
     if error:
         raise CustomException(ErrorCode.USER_MESSAGE_ERR)
+    
+    new_message.set(new_message_data)
     
     return content
 
@@ -45,9 +48,9 @@ def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
     content = f"{empathy}\n\n추천 음악:\n{ment_recommend}"
 
     # Firestore에 생성 및 저장
-    new_message = db.collection("Message").document()
+    new_message = extensions.db.collection("Message").document()
     new_message_docId = new_message.id
-    new_message.set({
+    new_message_data = {
         "chatId":chatId,
         "messageId":new_message_docId,
         "emotionName" : EmotionMapping.kor_to_eng(emotionName),
@@ -56,24 +59,26 @@ def MUZIGI_save_message(chatId, emotionName, empathy, recommend):
         "senderId": "MUZIGI",
         "recommendTracks": recommend,
         "created_at": firestore.SERVER_TIMESTAMP
-    })
-    
-    error = message_schema.validate(new_message)
+    }
+
+    error = message_schema.validate(new_message_data)
     if error:
         raise CustomException(ErrorCode.MUZIGI_MESSAGE_ERR)
+    
+    new_message.set(new_message_data)
     
     return content
 
 # 채팅방의 메시지 기록 리스트 반환
 def get_messages(chatId):
     try:
-        messages = (db.collection("Message")
+        messages = list(extensions.db.collection("Message")
                     .where("chatId", "==", chatId).order_by("created_at").stream())
 
         message_list = []
         for msg in messages:
             data = msg.to_dict()
-            data.pop(chatId)
+            data.pop("chatId", None)
             
             message_list.append(data)
     except:

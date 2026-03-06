@@ -1,6 +1,8 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, EXCLUDE
 
 class ChatSchema(Schema):
-    chatId = fields.String()
-    userDocId = fields.String()
-    createdAt = fields.DateTime()
+    chatId = fields.String(required=True)
+    userDocId = fields.String(required=True)
+    
+    class Meta:
+        unknown = EXCLUDE

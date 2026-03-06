@@ -1,4 +1,4 @@
-from marshmallow import Schema, fields
+from marshmallow import Schema, fields, EXCLUDE
 from ..track.track_schema import TrackInfoSchema
 
 class MessageSchema(Schema):
@@ -8,8 +8,7 @@ class MessageSchema(Schema):
     senderType = fields.Boolean()
     senderId = fields.String()
     emotionName = fields.String()
-    recommendTracks = fields.List(fields.Dict(
-        keys= fields.String(),
-        values=fields.Nested(TrackInfoSchema)
-    ))
-    created_at = fields.DateTime()
+    recommendTracks = fields.List(fields.Nested(TrackInfoSchema))
+    
+    class Meta:
+        unknown = EXCLUDE
