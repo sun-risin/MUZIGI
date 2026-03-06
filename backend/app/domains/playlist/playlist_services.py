@@ -1,4 +1,4 @@
-from ...extensions import db
+from ... import extensions
 from ..playlist.playlist_schema import PlaylistSchema, TrackInfoSchema
 from ...common.exception.customException import UnknownException, CustomException, ErrorCode
 
@@ -23,7 +23,7 @@ def DB_record_playlist(new_playlist_info: dict, tracks: dict):
         raise CustomException(ErrorCode.WRONG_PLAYLIST_INFO)
     
     # Firestore - Playlist 컬렉션
-    new_playlist = db.collection("Playlist").document(playlist_id)
+    new_playlist = extensions.db.collection("Playlist").document(playlist_id)
     new_playlist.set(new_data)
     
     
@@ -43,7 +43,7 @@ def DB_update_user_playlist(new_playlist_info: dict, userDocId: str):
         raise CustomException(ErrorCode.WRONG_PLAYLIST_INFO)
     
     # Firestore - users 컬렉션 수정
-    user_ref = db.collection("users").document(userDocId)
+    user_ref = extensions.db.collection("users").document(userDocId)
     user_ref.update({
         f"playlistIds.{emotionName}": playlist_id
     })
@@ -66,12 +66,12 @@ def DB_update_about_playlist(new_playlists_info: dict, userDocId: str, new_playl
     
 # 재생목록 삭제 (Playlist 컬렉션 내 문서 삭제)
 def DB_delete_playlist(playlist_id: str):
-    db.collection("Playlist").document(playlist_id).delete()
+    extensions.db.collection("Playlist").document(playlist_id).delete()
     
 # 재생목록 내 음악 추가
 def DB_add_track(playlistDocId: str, position: int, trackInfo: dict):
     try:
-        playlist_ref = db.collection("Playlist").document(playlistDocId)        
+        playlist_ref = extensions.db.collection("Playlist").document(playlistDocId)        
         playlist_ref.update({
             f"tracks.{str(position)}": trackInfo
         })

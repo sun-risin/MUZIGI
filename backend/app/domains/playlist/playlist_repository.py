@@ -1,9 +1,9 @@
-from ...extensions import db
+from ... import extensions
 from ...common.exception.customException import UnknownException, CustomException, ErrorCode
     
 # 사용자 소유 재생목록 정보 가져오기
 def DB_get_users_playlist(userDocId):
-    user_doc = db.collection("users").document(userDocId).get()
+    user_doc = extensions.db.collection("users").document(userDocId).get()
     return user_doc.get("playlistIds")
 
 # playlist 컬렉션에 없는 사용자 재생목록 정보를 찾아냄
@@ -14,7 +14,7 @@ def DB_check_playlist_by_user(userDocId):
         user_playlists = DB_get_users_playlist(userDocId)
         
         for emotionName, playlistDocId in user_playlists.items():
-            playlist_doc = db.collection("Playlist").document(playlistDocId).get()
+            playlist_doc = extensions.db.collection("Playlist").document(playlistDocId).get()
             
             if not playlist_doc.exists: 
                 have_to_record[emotionName] = playlist_doc
@@ -37,7 +37,7 @@ def DB_get_playlist_history(userDocId, emotionName):
         user_playlistIds = DB_get_users_playlist(userDocId)
         
         playlistDocId = user_playlistIds.get(f"{emotionName}")
-        playlist_doc = db.collection("Playlist").document(playlistDocId).get()
+        playlist_doc = extensions.db.collection("Playlist").document(playlistDocId).get()
         if not playlist_doc.exists: 
             raise CustomException(ErrorCode.NOT_FOUND_PLAYLIST)
         

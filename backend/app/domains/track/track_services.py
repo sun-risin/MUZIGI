@@ -1,4 +1,5 @@
-from ...extensions import db, FieldFilter
+from ... import extensions
+from ...extensions import FieldFilter
 from ...common.exception.customException import ErrorCode, CustomException
 from .track_schema import TrackInfoSchema
 
@@ -18,7 +19,7 @@ def tracks_recommend(traits):
     # Firestore에서 음악 특성값 기준 필터링 (kpop, 이외 각각 구한 뒤 합침)
     try:
         track_docs_kpop = list(
-            db.collection("TracksKpop")
+            extensions.db.collection("TracksKpop")
             .where(filter=FieldFilter("danceability", ">=", danceability[0]))
             .where(filter=FieldFilter("danceability", "<=", danceability[1]))
             .where(filter=FieldFilter("valence", ">=", valence[0]))
@@ -28,7 +29,7 @@ def tracks_recommend(traits):
             .stream()
         )
         track_docs_foreign = list(
-            db.collection("TracksPopular")
+            extensions.db.collection("TracksPopular")
             .where(filter=FieldFilter("danceability", ">=", danceability[0]))
             .where(filter=FieldFilter("danceability", "<=", danceability[1]))
             .where(filter=FieldFilter("valence", ">=", valence[0]))

@@ -1,4 +1,5 @@
-from ...extensions import db, FieldFilter
+from ... import extensions
+from ...extensions import FieldFilter
 from ..user.user_schema import RegisterUserSchema, UserSchema
 from ...common.exception.customException import ErrorCode, CustomException, ValidateException
 from .jwt_provider import generate_token
@@ -21,7 +22,7 @@ def register_user(user_data):
     nickname = user_data["nickname"]
     
     # 아이디 중복 체크
-    user_doc = db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
+    user_doc = extensions.db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
     if any(user_doc):
         raise CustomException(ErrorCode.DUPLICATE_USER)
 
@@ -29,7 +30,7 @@ def register_user(user_data):
     hashed_pw = generate_password_hash(password)
 
     # 새로운 사용자 문서 & 첫 채팅 생성
-    new_user_doc = db.collection("users").document() # 문서 생성
+    new_user_doc = extensions.db.collection("users").document() # 문서 생성
     new_user_docId = new_user_doc.id
     try:
         first_chatId = create_chat(new_user_docId)      # 첫 채팅 생성
@@ -63,7 +64,7 @@ def get_token_and_user_info(login_data):
     userId = login_data["userId"]
     password = login_data["password"]
     
-    user_doc = db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
+    user_doc = extensions.db.collection("users").where(filter=FieldFilter("userId", "==", userId)).stream()
     if not user_doc:
         raise CustomException(ErrorCode.FAILED_LOGIN)
     

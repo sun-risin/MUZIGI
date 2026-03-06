@@ -1,6 +1,5 @@
 import requests
 
-from ...extensions import db
 from ..playlist.playlist_schema import TrackInfoSchema
 from ..emotion.emotionMapping import EmotionMapping
 from ...common.exception.customException import UnknownException, ValidateException, CustomException, ErrorCode, SpotifyNotFoundException
