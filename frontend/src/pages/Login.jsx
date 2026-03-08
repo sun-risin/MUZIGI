@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import "./Login.css"; 
 function Login({ setIsLoggedIn }) { 
   const navigate = useNavigate();
-
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
