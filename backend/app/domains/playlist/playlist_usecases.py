@@ -59,23 +59,26 @@ def record_liked_track(spotifyToken: str, userDocId: str, emotionName:str, track
     if retry_cnt > 1:
         raise CustomException(ErrorCode.UNKNOWN_ERR)
     
+    # 감정값은 서비스에서만 한글, 서버에서는 영어로 통함
+    emotion = EmotionMapping.kor_to_eng(emotionName)
+    
     # --- 1-2. 재생목록 존재 여부를 확인한다. 
     # db_user 컬렉션에 있는 재생목록 정보 {emotionName : id}
     db_user_muzigi_playlists_info = DB_get_users_playlist(userDocId)
     # 1-2.1.
-    if emotionName not in db_user_muzigi_playlists_info.keys():
+    if emotion not in db_user_muzigi_playlists_info.keys():
         create_new_playlist(userDocId, spotifyToken)
         db_user_muzigi_playlists_info = DB_get_users_playlist(userDocId)
     
     # --- 1-3. 해당하는 감정 재생목록에 음악의 존재 여부를 확인한다.
-    existing_tracks = DB_get_playlist_history(userDocId, emotionName)
+    existing_tracks = DB_get_playlist_history(userDocId, emotion)
     # 1-3.1.
     if ((trackInfo.get("title"), trackInfo.get("artist")) 
             in ((v["title"], v["artist"]) for v in existing_tracks.values())): 
         raise CustomException(ErrorCode.DUPLICATE_TRACK)
     
     # --- 1-4. 해당하는 감정 재생목록에 음악이 저장된다.
-    playlistDocId = db_user_muzigi_playlists_info.get(emotionName)
+    playlistDocId = db_user_muzigi_playlists_info.get(emotion)
     position = len(existing_tracks) + 1
     
     # 1-4-1. & 1-4-1.2.
@@ -83,7 +86,7 @@ def record_liked_track(spotifyToken: str, userDocId: str, emotionName:str, track
         spotify_addItem(spotifyToken, playlistDocId, position, trackInfo)
     except SpotifyNotFoundException:
         if retry_cnt == 0:
-            sync_spotify_playlists(playlistDocId, spotifyToken, emotionName, userDocId)
+            sync_spotify_playlists(playlistDocId, spotifyToken, emotion, userDocId)
             return record_liked_track(spotifyToken, userDocId, emotionName, trackInfo, retry_cnt+1)
             
         raise

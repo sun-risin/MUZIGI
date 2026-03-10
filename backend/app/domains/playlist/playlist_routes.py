@@ -31,6 +31,9 @@ def createPlaylist(curr_user):
 @playlist_blp.route("/<emotionName>/add", methods=["POST"])
 @login_required
 def addTrackToPlaylist(curr_user, emotionName):
+    if EmotionMapping.kor_to_eng(emotionName) == "wrong":
+        raise CustomException(ErrorCode.WRONG_EMOTION_VAL)
+    
     userDocId = curr_user.get("userDocId")
     
     request_data = request.get_json()
