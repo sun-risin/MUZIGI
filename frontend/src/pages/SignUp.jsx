@@ -6,10 +6,11 @@ function SignUp() {
   const [userId, setUserId] = useState("");
   const [password, setPassword] = useState("");
   const [nickname, setNickname] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false); //로딩 상태
+  const navigate = useNavigate(); //페이지 이동 함수
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
-  const validateForm = () => {
+  const validateForm = () => { // 따로 확인 한 번 더 실행
     if (!userId) {
       alert("아이디를 입력해주세요.");
       return false;
@@ -30,11 +31,9 @@ function SignUp() {
   };
 
   const handleSignUp = async () => {
-    if (!validateForm()) {
-      return;
-    }
+    if (!validateForm()) return; // 입력값 이상하면 서버 요청 못하게 막아둠
 
-    setIsLoading(true);
+    setIsLoading(true); //ui 상태 변경, 버튼 클릭시 화면 렌더링
 
     try {
       const response = await fetch("http://localhost:5000/api/auth/signup", {
@@ -42,23 +41,23 @@ function SignUp() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          userId, password, nickname,
-        }),
+        body: JSON.stringify({ userId, password, nickname, }),
       });
 
-      if (response.ok) {
+      const data = await response.json();
+
+      if (response.ok === 201) {
         alert("회원가입 성공!");
         navigate("/login");
-      } else {
-        if (response.status === 409) {
-          alert("이미 존재하는 아이디입니다.");
-        } else {
-          const data = await response.json();
-          alert(data.message || "회원가입 중 문제가 발생했습니다.");
-        }
+        return;
       }
-    } catch (error) {
+      if (response.status === 409) {
+        alert("이미 존재하는 아이디입니다.");
+        return;  
+      }
+        alert(data?.message || "회원가입 중 문제가 발생했습니다.");
+      }
+      catch (error) {
       console.error("회원가입 중 오류 발생:", error);
       alert("서버와 연결할 수 없습니다.");
     } finally {
