@@ -102,16 +102,19 @@ def get_hisotry_playlist(userDocId: str, emotionName: str, spotifyToken: str):
     1-3. db playlist 컬렉션 내 문서 필드 내부 음악 내역 가져오기
     """
     
+    # 감정값은 서비스에서만 한글, 서버에서는 영어로 통함
+    emotion = EmotionMapping.kor_to_eng(emotionName)
+    
     # --- 1-2. 재생목록 존재 여부를 확인한다. 
-    # db_user 컬렉션에 있는 재생목록 정보 {emotionName : id}
+    # db_user 컬렉션에 있는 재생목록 정보 {emotionName 영어 : id}
     db_user_muzigi_playlists_info = DB_get_users_playlist(userDocId)
     # 1-2.1.
-    if emotionName not in db_user_muzigi_playlists_info.keys():
+    if emotion not in db_user_muzigi_playlists_info.keys():
         create_new_playlist(userDocId, spotifyToken)
         db_user_muzigi_playlists_info = DB_get_users_playlist(userDocId)
         
     # --- 1-3. db playlist 컬렉션 내 문서 필드 내부 음악 내역 가져오기
-    history = DB_get_playlist_history(userDocId, emotionName)
+    history = DB_get_playlist_history(userDocId, emotion)
     response_data = {"tracks" : history}
     
     return response_data

@@ -2,6 +2,8 @@ from flask import Blueprint, request
 from ..auth.decorater import login_required
 
 from ...common.apiResponse import ApiResponse
+from ...common.exception.customException import ErrorCode, CustomException
+from ..emotion.emotionMapping import EmotionMapping
 
 # 서비스 레이어의 함수들 import
 from .playlist_usecases import create_new_playlist, record_liked_track, get_hisotry_playlist
@@ -45,6 +47,9 @@ def addTrackToPlaylist(curr_user, emotionName):
 @playlist_blp.route("/<emotionName>/show", methods=["POST"])
 @login_required
 def showPlaylistHistory(curr_user, emotionName):
+    if EmotionMapping.kor_to_eng(emotionName) == "wrong":
+        raise CustomException(ErrorCode.WRONG_EMOTION_VAL)
+    
     userDocId = curr_user.get("userDocId")
     
     request_data = request.get_json()
