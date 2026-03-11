@@ -10,7 +10,8 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
   const isInitialLoad = useRef(true);
   const [isPlayerReady, setIsPlayerReady] = useState(false);
   const [deviceId, setDeviceId] = useState(null);
-
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+  
   // 1. 스포티파이 SDK 및 재생목록 초기화
   useEffect(() => {
     const delay = 2500;
@@ -18,7 +19,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
       const muzigiToken = localStorage.getItem('accessToken');
       if (!muzigiToken || !spotifyToken) return;
       try {
-        const response = await fetch('http://localhost:5000/api/playlist/new', {
+        const response = await fetch(`${API_BASE_URL}/api/playlist/new`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -80,30 +81,30 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
     const fetchChatHistory = async () => {
       setIsLoading(true);
       const token = localStorage.getItem('accessToken');
-      setNickname(localStorage.getItem('userNickname') || '방문자');
+      setNickname(localStorage.getItem('userNickname'));
 
       if (selectedChatId && token) {
-        try {
-          const response = await fetch(`http://localhost:5000/api/chat/${selectedChatId}/messages`, {
-            method: 'GET',
-            headers: { 'Authorization': `${token}` }
-          });
-          const historyData = await response.json();
-          
-          let fetchedMessages = [];
-          if (historyData && Array.isArray(historyData.messages)) {
-            fetchedMessages = historyData.messages;
-          } else if (Array.isArray(historyData)) {
-            fetchedMessages = historyData;
-          }
-          setMessages(fetchedMessages);
-        } catch (error) {
-          console.error(error);
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/chat/${selectedChatId}/messages`, {
+          method: 'GET',
+          headers: { 'Authorization': `${token}` }
+        });
+        
+        const responseData = await response.json();
+        
+        if(responseData.success && responseData.data){
+          setMessages(responseData.data.messages || []);
+        }else{
+          console.error("채팅 로드 실패: ", responseData.message);
           setMessages([]);
-        } finally {
+          }
+        } catch(error){
+          console.error("네트워크 오류:", error);
+          setMessages([]);
+        }finally{
           setIsLoading(false);
         }
-      } else {
+      }else{
         setMessages([]);
         setIsLoading(false);
       }
@@ -178,9 +179,7 @@ function Chat({ selectedChatId, messages, setMessages, onToggleLike, playlistTra
               {!msg.senderType && (
                 <img src={Muzigi} alt="봇 프로필" className="bot-profile-in-chat" />
               )}
-              <div className="message-content">
-                <p>{msg.content}</p>
-              </div>
+              <div className="message-content"> <p>{msg.content}</p> </div>
             </div>
           );
         })}
