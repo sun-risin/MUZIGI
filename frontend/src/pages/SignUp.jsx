@@ -11,20 +11,16 @@ function SignUp() {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const validateForm = () => { // 따로 확인 한 번 더 실행
-    if (!userId) {
-      alert("아이디를 입력해주세요.");
+    if (!userId) { alert("아이디를 입력해주세요."); 
       return false;
     }
-    if (!password) {
-      alert("비밀번호를 입력해주세요.");
+    if (!password) { alert("비밀번호를 입력해주세요.");
       return false;
     }
-    if (password.length < 6) {
-        alert("비밀번호는 6자 이상이어야 합니다.");
+    if (password.length < 6) { alert("비밀번호는 6자 이상이어야 합니다.");
         return false;
     }
-    if (!nickname) {
-      alert("닉네임을 입력해주세요.");
+    if (!nickname) { alert("닉네임을 입력해주세요.");
       return false;
     }
     return true;
@@ -36,34 +32,30 @@ function SignUp() {
     setIsLoading(true); //ui 상태 변경, 버튼 클릭시 화면 렌더링
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/signup", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json"},
         body: JSON.stringify({ userId, password, nickname, }),
       });
-
+      
       const data = await response.json();
 
-      if (response.ok === 201) {
-        alert("회원가입 성공!");
+      if (data.success === true) {
+        alert(data.message);
         navigate("/login");
         return;
       }
-      if (response.status === 409) {
-        alert("이미 존재하는 아이디입니다.");
+      else{
+        alert(data.message);
         return;  
       }
-        alert(data?.message || "회원가입 중 문제가 발생했습니다.");
-      }
-      catch (error) {
-      console.error("회원가입 중 오류 발생:", error);
-      alert("서버와 연결할 수 없습니다.");
-    } finally {
+    } catch(error){
+      console.error("네트워크 오류:", error);
+      alert("서버와 통신 중 오류가 발생했습니다.");
+    }finally{
       setIsLoading(false);
     }
-  };
+  }
 
   return (
     <div className="signup">
@@ -89,11 +81,7 @@ function SignUp() {
         onChange={(e) => setNickname(e.target.value)}
         disabled={isLoading}
       />
-      <button
-        className="signup-button"
-        onClick={handleSignUp}
-        disabled={isLoading}
-      >
+      <button className="signup-button" onClick={handleSignUp} disabled={isLoading}>
         {isLoading ? "가입 처리 중..." : "가입하기"}
       </button>
     </div>
