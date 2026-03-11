@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import "./Login.css"; 
+
 function Login({ setIsLoggedIn }) { 
   const navigate = useNavigate();
   const [userId, setUserId] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   const handleLogin = async () => {
     if (!userId || !password) {
@@ -16,33 +18,30 @@ function Login({ setIsLoggedIn }) {
     setIsLoading(true);
 
     try {
-      const response = await fetch('http://127.0.0.1:5000/api/auth/login', {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          userId: userId,
-          password: password,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, password }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
-      if (response.ok) {
-        if (data.userToken && data.nickname&&data.firstChatId) { 
-          localStorage.setItem('accessToken', data.userToken); // 토큰 저장
-          localStorage.setItem('userNickname', data.nickname); // 닉네임 저장
-          localStorage.setItem('chatId', data.firstChatId);
+      if (responseData.success && responseData.data) {
+        const {firstChatId, nickname, userToken,} = responseData.data;
 
-          alert("로그인 성공!");
+        if (userToken && nickname&&firstChatId) {
+          localStorage.setItem('chatId', firstChatId); 
+          localStorage.setItem('userNickname', nickname);
+          localStorage.setItem('accessToken', userToken);
+
+          alert(responseData.message);//로그인 성공
           setIsLoggedIn(true); 
           navigate('/chat'); // 채팅 페이지로 이동
         } else {
-          alert("로그인 성공, 필수정보(닉네임, chatId를 받지 못했습니다.");
+          alert("로그인 정보가 부족합니다. 서버 데이터 확인 요망");
         }
       } else {
-        alert(data.message || "아이디 또는 비밀번호가 일치하지 않습니다.");
+        alert(responseData.message);
       }
     } catch (error) {
       console.error("로그인 중 오류 발생:", error);
@@ -73,20 +72,10 @@ function Login({ setIsLoggedIn }) {
         onChange={(e) => setPassword(e.target.value)}
         disabled={isLoading}
       />
-      <button
-        className="login-button"
-        onClick={handleLogin}
-        disabled={isLoading}
-      >
+      <button className="login-button" onClick={handleLogin} disabled={isLoading}>
         {isLoading ? "로그인 중..." : "로그인"}
       </button>
-      <button
-        className="link-button"
-        onClick={handleShowSignUp}
-        disabled={isLoading}
-      >
-        회원가입
-      </button>
+      <button className="link-button" onClick={handleShowSignUp} disabled={isLoading}> 회원가입 </button>
     </div>
   );
 }
